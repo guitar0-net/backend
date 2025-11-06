@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 from pathlib import Path
 
 import dj_database_url

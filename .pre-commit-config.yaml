@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.9.1
@@ -40,3 +44,9 @@ repos:
         types: [python]
         pass_filenames: false
         args: ["-q", "--maxfail=1", "--disable-warnings"]
+
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v6.2.0
+    hooks:
+      - id: reuse
+        name: Check SPDX license compliance
