@@ -1,4 +1,8 @@
-.PHONY: help install update lint test migrate run shell clean checkmigrations loc ci
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+.PHONY: help install update lint test migrate run shell clean checkmigrations loc ci license-add license-check
 
 # Переменные: интегрируем PDM
 PYTHON := pdm run python
@@ -40,6 +44,12 @@ clean: ## Очистить временные и служебные файлы
 
 checkmigrations: ## Проверить наличие неприменённых миграций
 	$(DJANGO) makemigrations --check --dry-run --no-input
+
+license-add: ## Добавить лицензионные заголовки
+	$(PDM) license-add
+
+license-check: ## Проверить наличие лицензионных заголовков
+	$(PDM) license-check
 
 loc: ## Подсчет строк кода и тестов
 	@echo "📊 Подсчет строк кода:"

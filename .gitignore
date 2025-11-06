@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # Python
 __pycache__/
 *.py[cod]
@@ -36,3 +40,4 @@ staticfiles/
 # other
 .vscode
 .DS_Store
+.reuse/dep5.cache

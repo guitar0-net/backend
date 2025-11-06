@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -19,7 +23,7 @@ dependencies = [
 ]
 requires-python = ">=3.12"
 readme = "README.md"
-license = {text = "AGPL-3.0"}
+license = {text = "AGPL-3.0-or-later"}
 
 [project.optional-dependencies]
 dev = [
@@ -31,6 +35,7 @@ dev = [
     "django-stubs-ext>=5.2.7",
     "djangorestframework-stubs>=3.16.5",
     "commitizen>=4.9.1",
+    "reuse>=6.2.0",
 ]
 test = [
     "pytest>=8.4.2",
@@ -132,3 +137,5 @@ version_files = ["pyproject.toml"]
 [tool.pdm.scripts]
 setup = "pdm install --group dev --group test --group lint"
 lint = "python scripts/lint.py"
+license-check = "reuse lint"
+license-add = "reuse annotate --recursive . --skip-unrecognised --copyright 'Andrey Kotlyar' --license AGPL-3.0-or-later"
