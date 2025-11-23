@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -33,11 +33,11 @@ migrate: ## Миграции БД
 run: migrate ## Запустить dev-сервер
 	$(DJANGO) runserver 0.0.0.0:8000
 
-shell: ## Django shell_plus
-	$(PDM) run python manage.py shell_plus
+shell: ## Django shell
+	$(PDM) python manage.py shell
 
 clean: ## Очистить временные и служебные файлы
-	find . -name "*.pyc" -delete
+	find . -name "**/*.pyc" -delete
 	find . -name "__pycache__" -type d -exec rm -rf {} +
 	rm -f .coverage coverage.xml
 	rm -rf htmlcov/ .mypy_cache .pytest_cache .ruff_cache
