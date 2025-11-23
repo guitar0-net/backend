@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -37,13 +37,21 @@ repos:
 
   - repo: local
     hooks:
-      - id: pytest
-        name: Run pytest
+      - id: pytest-unit
+        name: Run unit tests
         entry: pytest
         language: system
         types: [python]
         pass_filenames: false
-        args: ["-q", "--maxfail=1", "--disable-warnings"]
+        args: []
+        stages: [pre-commit]
+      - id: pytest-integration
+        name: Run integration tests
+        entry: pytest
+        language: system
+        pass_filenames: false
+        args: ["-m", "integration"]
+        stages: [manual]
 
   - repo: https://github.com/fsfe/reuse-tool
     rev: v6.2.0
