@@ -8,7 +8,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "guitar0-server"
-version = "0.0.1"
+version = "0.1.0"
 description = "API Server for the mobile and the web clients"
 authors = [
     {name = "Andrey Kotlyar", email = "kotlyar562@gmail.com"},
