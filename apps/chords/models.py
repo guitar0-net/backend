@@ -20,7 +20,15 @@ from apps.chords.constants import (
 
 
 class Chord(models.Model):
-    """Main model for saving information about guitar chords."""
+    """Main model for saving information about guitar chords.
+
+    Attributes:
+        title (str): Common name of the chord (e.g., "Am").
+        musical_title (str): Formal musical notation.
+        order_in_note (int): Order of display for variations of the same chord.
+        start_fret (int): The fret number where the chord diagram starts.
+        has_barre (bool): Indicates if the chord requires a barre technique.
+    """
 
     title = models.CharField("Название", max_length=50)
     musical_title = models.CharField("Музыкальное название", max_length=50)
@@ -33,7 +41,14 @@ class Chord(models.Model):
 
 
 class ChordPosition(models.Model):
-    """Model for describing position of one string in a chord."""
+    """Model for describing position of one string in a chord.
+
+    Attributes:
+        chord (Chord): Reference to the parent Chord.
+        string_number (int): String number (1-6 for standard guitar).
+        fret (int): Fret number. 0 is open, -1 is muted.
+        finger (int): Finger number (1-4). 0 usually implies no finger (open/muted).
+    """
 
     chord = models.ForeignKey(Chord, related_name="positions", on_delete=models.CASCADE)
     string_number = models.PositiveSmallIntegerField(

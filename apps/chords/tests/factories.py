@@ -23,6 +23,7 @@ class ChordFactory(DjangoModelFactory[Chord]):
 
     class Meta:
         model = Chord
+        skip_postgeneration_save = True
 
 
 class ChordPositionFactory(DjangoModelFactory[ChordPosition]):
@@ -44,12 +45,14 @@ class FullChordFactory(ChordFactory):
     def positions(
         self,
         create: bool,
+        context_value: bool | None,
         **kwargs: dict[str, str],
     ) -> None:
         if not create:
             return
         for string_num in range(1, 7):
-            ChordPositionFactory(
+            chord_position = ChordPositionFactory(
                 chord=self,
                 string_number=string_num,
             )
+            chord_position.save()

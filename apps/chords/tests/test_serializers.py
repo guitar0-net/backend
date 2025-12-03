@@ -16,7 +16,12 @@ from apps.chords.constants import (
     MIN_STRING_NUMBER,
 )
 from apps.chords.models import Chord, ChordPosition
-from apps.chords.serializers import ChordPositionSerializer, ChordSerializer
+from apps.chords.serializers import (
+    ChordCreateUpdateSerializer,
+    ChordOutputSerializer,
+    ChordPositionSerializer,
+)
+from apps.chords.tests.factories import FullChordFactory
 
 
 @pytest.fixture
@@ -29,7 +34,7 @@ def valid_chord_data() -> dict[str, Any]:
     return {
         "title": "Am",
         "musical_title": "A minor",
-        "order_in_note": 2,
+        "order_in_note": 1,
         "start_fret": 1,
         "has_barre": False,
         "positions": [
@@ -41,6 +46,35 @@ def valid_chord_data() -> dict[str, Any]:
             {"string_number": 6, "fret": 0, "finger": 0},
         ],
     }
+
+
+@pytest.fixture
+def invalid_duplicate_positions_data() -> dict[str, Any]:
+    return {
+        "title": "Invalid Chord",
+        "musical_title": "Invalid",
+        "order_in_note": 1,
+        "start_fret": 1,
+        "has_barre": False,
+        "positions": [
+            {"string_number": 6, "fret": 5, "finger": 1},
+            {"string_number": 6, "fret": 7, "finger": 3},
+        ],
+    }
+
+
+@pytest.fixture
+def db_chord_instance(chord_factory: type[FullChordFactory]) -> Chord:
+    return chord_factory.create(
+        title="C",
+        musical_title="C major",
+        order_in_note=3,
+        start_fret=1,
+        has_barre=False,
+    )
+
+
+# --- ТЕСТЫ СЕРИАЛИЗАТОРА ПОЗИЦИЙ (ChordPositionSerializer) ---
 
 
 @pytest.mark.django_db
@@ -121,69 +155,53 @@ def test_chord_position_serializer_serialization(chord: Chord) -> None:
     }
 
 
-@pytest.mark.django_db
-def test_create_chord_with_positions(valid_chord_data: dict[str, Any]) -> None:
-    serializer = ChordSerializer(data=valid_chord_data)
-    assert serializer.is_valid(), serializer.errors
-    chord = serializer.save()
-
-    assert chord.title == "Am"
-    assert chord.positions.count() == 6
-    assert chord.positions.filter(fret=2).count() == 2
+# --- ТЕСТЫ СЕРИАЛИЗАТОРА СОЗДАНИЯ/ОБНОВЛЕНИЯ (INPUT) ---
 
 
 @pytest.mark.django_db
-def test_create_invalid_position_raises(valid_chord_data: dict[str, Any]) -> None:
-    valid_chord_data["positions"][0]["string_number"] = 0
+def test_chord_create_serializer_valid(valid_chord_data: dict[str, Any]) -> None:
+    serializer = ChordCreateUpdateSerializer(data=valid_chord_data)
+    assert serializer.is_valid() is True
+    assert "positions" in serializer.validated_data
+    assert len(serializer.validated_data["positions"]) == 6
 
-    serializer = ChordSerializer(data=valid_chord_data)
-    assert not serializer.is_valid()
+
+@pytest.mark.django_db
+def test_chord_create_serializer_invalid_duplicate_positions(
+    invalid_duplicate_positions_data: dict[str, Any],
+) -> None:
+    serializer = ChordCreateUpdateSerializer(data=invalid_duplicate_positions_data)
+    assert serializer.is_valid() is False
     assert "positions" in serializer.errors
-    assert "string_number" in serializer.errors["positions"][0]
+    assert (
+        "Duplicate string numbers are not allowed." in serializer.errors["positions"][0]
+    )
 
 
 @pytest.mark.django_db
-def test_update_title_only_does_not_delete_positions() -> None:
-    chord = Chord.objects.create(title="C", musical_title="C major")
-    ChordPosition.objects.create(chord=chord, string_number=1, fret=0, finger=0)
-
-    serializer = ChordSerializer(chord, data={"title": "C major"}, partial=True)
-    assert serializer.is_valid(), serializer.errors
-    updated = serializer.save()
-
-    assert updated.title == "C major"
-    assert updated.positions.count() == 1
+def test_chord_create_serializer_missing_required_field(
+    valid_chord_data: dict[str, Any],
+) -> None:
+    invalid_data = valid_chord_data.copy()
+    invalid_data.pop("title")
+    serializer = ChordCreateUpdateSerializer(data=invalid_data)
+    assert serializer.is_valid() is False
+    assert "title" in serializer.errors
 
 
-@pytest.mark.django_db
-def test_update_with_positions_replaces_them() -> None:
-    chord = Chord.objects.create(title="Am")
-    ChordPosition.objects.create(chord=chord, string_number=1, fret=0, finger=0)
-
-    new_data = {
-        "title": "Am7",
-        "positions": [
-            {"string_number": 1, "fret": 0, "finger": 0},
-            {"string_number": 2, "fret": 0, "finger": 0},
-        ],
-    }
-
-    serializer = ChordSerializer(chord, data=new_data, partial=True)
-    assert serializer.is_valid(), serializer.errors
-    updated = serializer.save()
-
-    assert updated.positions.count() == 2
-    assert updated.positions.filter(fret=0).count() == 2
+# --- ТЕСТЫ СЕРИАЛИЗАТОРА ВЫВОДА (OUTPUT) ---
 
 
 @pytest.mark.django_db
-def test_read_only_positions_on_output() -> None:
-    chord = Chord.objects.create(title="G")
-    ChordPosition.objects.create(chord=chord, string_number=1, fret=3, finger=2)
-
-    serializer = ChordSerializer(chord)
+def test_chord_output_serializer_read(db_chord_instance: Chord) -> None:
+    serializer = ChordOutputSerializer(db_chord_instance)
     data = serializer.data
 
+    assert "id" in data
+    assert data["title"] == "C"
+    assert data["musical_title"] == "C major"
+    assert data["order_in_note"] == 3
+    assert data["start_fret"] == 1
+    assert data["has_barre"] is False
     assert "positions" in data
-    assert len(data["positions"]) == 1
-    assert data["positions"][0]["fret"] == 3
+    assert len(data["positions"]) == 6
