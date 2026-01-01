@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.chords",
     "apps.schemes",
+    "apps.songs",
 ]
 
 MIDDLEWARE = [
