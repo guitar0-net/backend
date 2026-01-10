@@ -5,7 +5,7 @@
 groups = ["default", "dev", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:40b8d7ad09f0b83f5afd0436b61df05d0aaf07a28c76d17ffefa9edaa8e8ce98"
+content_hash = "sha256:489d4d1bb9abe1f1fa4b1fedff28d874e19640a24453af3d792eb1363f9b8659"
 
 [[metadata.targets]]
 requires_python = ">=3.12"
@@ -441,6 +441,21 @@ files = [
 ]
 
 [[package]]
+name = "django-markdownx"
+version = "4.0.9"
+summary = "A comprehensive Markdown editor built for Django."
+groups = ["default"]
+dependencies = [
+    "Django",
+    "Markdown",
+    "Pillow",
+]
+files = [
+    {file = "django-markdownx-4.0.9.tar.gz", hash = "sha256:f82949beaddcaf5cbe765f580b1bf062b3aa5eea94633fdbbb6466514311a907"},
+    {file = "django_markdownx-4.0.9-py2.py3-none-any.whl", hash = "sha256:0e78759a8701073fee3e4883764a9bf1cdf3fe4c2941747acbe4f093f9285805"},
+]
+
+[[package]]
 name = "django-stubs"
 version = "5.2.7"
 requires_python = ">=3.10"
@@ -603,6 +618,17 @@ dependencies = [
 files = [
     {file = "license_expression-30.4.4-py3-none-any.whl", hash = "sha256:421788fdcadb41f049d2dc934ce666626265aeccefddd25e162a26f23bcbf8a4"},
     {file = "license_expression-30.4.4.tar.gz", hash = "sha256:73448f0aacd8d0808895bdc4b2c8e01a8d67646e4188f887375398c761f340fd"},
+]
+
+[[package]]
+name = "markdown"
+version = "3.10"
+requires_python = ">=3.10"
+summary = "Python implementation of John Gruber's Markdown."
+groups = ["default"]
+files = [
+    {file = "markdown-3.10-py3-none-any.whl", hash = "sha256:b5b99d6951e2e4948d939255596523444c0e677c669700b1d17aa4a8a464cb7c"},
+    {file = "markdown-3.10.tar.gz", hash = "sha256:37062d4f2aa4b2b6b32aefb80faa300f82cc790cb949a35b8caede34f2b68c0e"},
 ]
 
 [[package]]
