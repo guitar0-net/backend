@@ -32,9 +32,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "markdownx",
     "apps.accounts",
     "apps.chords",
     "apps.schemes",
+    "apps.songs",
 ]
 
 MIDDLEWARE = [
