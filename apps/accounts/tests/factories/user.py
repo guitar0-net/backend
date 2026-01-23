@@ -38,7 +38,7 @@ class UserFactory(DjangoModelFactory[User]):
 
     email = fake.email()
 
-    @factory.post_generation  # type: ignore[misc, attr-defined]
+    @factory.post_generation  # type: ignore[attr-defined, untyped-decorator]
     def password(
         self, create: bool, extracted: str | None, **kwargs: dict[str, str]
     ) -> None:
