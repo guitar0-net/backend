@@ -20,11 +20,12 @@ repos:
     rev: v1.18.2
     hooks:
       - id: mypy
-        args: ["--strict"]
+        args: ["--strict", "."]
         name: mypy
         entry: pdm run mypy
         language: system
         types: [python]
+        pass_filenames: false
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
