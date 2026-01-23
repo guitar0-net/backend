@@ -100,6 +100,7 @@ unfixable = ["F401"] # don't remove import without using
 "**/factories.py" = ["D106"]
 "**/serializers.py" = ["D106"]
 "__init__.py" = ["F401"] # imports without using in init files
+"**settings/__init__.py" = ["RUF067"] # only docstrings and re-exports in settings/init
 
 [tool.ruff.format]
 quote-style = "double"

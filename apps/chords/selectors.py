@@ -32,7 +32,8 @@ def get_all_chords() -> QuerySet[Chord]:
             order_in_note and title.
     """
     return (
-        Chord.objects.all()
+        Chord.objects
+        .all()
         .order_by("title", "order_in_note")
         .prefetch_related("positions")
     )
