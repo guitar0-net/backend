@@ -5,6 +5,14 @@
 
 """Admin settings for lessons."""
 
-# from django.contrib import admin
+from django.contrib import admin
 
-# Register your models here.
+from apps.lessons.models import Lesson
+
+
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    """Admin interface for the Lesson model."""
+
+    list_display = ("title", "is_published")
+    search_fields = ("title",)
