@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
     LOG_FILE_PATH: Path = BASE_DIR / "logs" / "django.log"
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
+    GIT_SHA: str = "unknown"
+    BUILD_DATETIME: str = "unknown"
 
     SECRET_KEY: str
     DATABASE_URL: str

@@ -3,16 +3,19 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [build-system]
-requires = ["pdm-backend"]
+requires = [
+    "pdm-backend",
+    "pdm-dynamic-versioning",
+]
 build-backend = "pdm.backend"
 
 [project]
-name = "guitar0-server"
-version = "0.1.0"
-description = "API Server for the mobile and the web clients"
+name = "guitar0-backend"
+description = "API backend for the mobile and the web clients"
 authors = [
     {name = "Andrey Kotlyar", email = "kotlyar562@gmail.com"},
 ]
+dynamic = ["version"]
 dependencies = [
     "Django>=5.2.8",
     "djangorestframework>=3.16.1",
@@ -22,6 +25,7 @@ dependencies = [
     "pydantic>=2.12.4",
     "Pillow>=12.0.0",
     "django-markdownx>=4.0.9",
+    "prometheus-client>=0.21.0",
 ]
 requires-python = ">=3.12"
 readme = "README.md"
@@ -50,6 +54,8 @@ test = [
     "coverage[toml]>=7.11.0",
 ]
 
+[tool.pdm.version]
+source = "scm"
 
 [tool.mypy]
 python_version = "3.12"
@@ -95,7 +101,7 @@ ignore = [
 unfixable = ["F401"] # don't remove import without using
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/*" = ["D100", "D101", "D102", "D103", "PLR2004"] # test files and functions without docs; numbers without constants
+"**/tests/*" = ["D100", "D101", "D102", "D103", "PLR2004", "PLR6301", "PLC0415"] # test files and functions without docs; numbers without constants; methods could be static; local imports
 "**/models.py" = ["D106", "D105"] # docstring in nested classes (Meta), doc for __str__
 "**/factories.py" = ["D106"]
 "**/serializers.py" = ["D106"]

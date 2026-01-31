@@ -1,10 +1,11 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """Initialize settings and configure derived attributes."""
 
 import os
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import dj_database_url
@@ -16,6 +17,13 @@ from .base import get_settings
 settings = get_settings()
 LOGGING = get_logging_config(settings)
 os.makedirs(settings.LOG_FILE_PATH.parent, exist_ok=True)
+
+try:
+    VERSION: str = version("guitar0-backend")
+except PackageNotFoundError:
+    VERSION = "unknown"
+GIT_SHA: str = settings.GIT_SHA
+BUILD_DATETIME: str = settings.BUILD_DATETIME
 
 SECRET_KEY = settings.SECRET_KEY
 DEBUG = settings.DEBUG
@@ -33,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "markdownx",
+    "apps.metrics",
     "apps.accounts",
     "apps.chords",
     "apps.schemes",
@@ -42,6 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "apps.metrics.middleware.PrometheusMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
