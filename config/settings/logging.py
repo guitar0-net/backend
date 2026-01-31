@@ -149,6 +149,11 @@ def get_logging_config(settings: Settings) -> LoggingConfig:
                 "level": "DEBUG" if settings.DEBUG else "INFO",
                 "propagate": False,
             },
+            "courses": {
+                "handlers": ["console", "file"],
+                "level": "DEBUG" if settings.DEBUG else "INFO",
+                "propagate": False,
+            },
         },
     }
     return base_logging
