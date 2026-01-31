@@ -18,7 +18,7 @@ def test_song_list_serializer() -> None:
 
     data = SongListSerializer(song).data
 
-    assert data == {"pk": song.pk, "title": "Test Song"}
+    assert data == {"id": song.pk, "title": "Test Song"}
 
 
 @pytest.mark.django_db
@@ -40,13 +40,13 @@ def test_song_detail_serializer() -> None:
 
     data = SongDetailSerializer(song).data
 
-    assert data["pk"] == song.pk
+    assert data["id"] == song.pk
     assert data["title"] == "Song 1"
     assert data["text"] == "song text"
     assert data["metronome"] == 80
 
     assert len(data["schemes"]) == 2
-    assert {s["pk"] for s in data["schemes"]} == {s.pk for s in schemes}
+    assert {s["id"] for s in data["schemes"]} == {s.pk for s in schemes}
 
     assert len(data["chords"]) == 1
     chord_data = data["chords"][0]

@@ -72,7 +72,7 @@ def test_output_data(image_scheme_factory: type[ImageSchemeFactory]) -> None:
     serializer = ImageSchemeSerializer(scheme)
     data = serializer.data
 
-    assert "pk" in data
+    assert "id" in data
     assert "code" not in data
     assert data["inscription"] == "Beat #1"
     assert data["height"] == 100
