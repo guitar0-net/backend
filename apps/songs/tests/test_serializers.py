@@ -7,12 +7,22 @@ import pytest
 
 from apps.chords.tests.factories import ChordFactory
 from apps.schemes.tests.factories import ImageSchemeFactory
-from apps.songs.api.serializers import SongOutputSerializer
+from apps.songs.api.v1.serializers.song_detail_serializer import SongDetailSerializer
+from apps.songs.api.v1.serializers.songs_list_serializer import SongListSerializer
 from apps.songs.tests.factories import SongFactory
 
 
 @pytest.mark.django_db
-def test_output_data() -> None:
+def test_song_list_serializer() -> None:
+    song = SongFactory.create(title="Test Song")
+
+    data = SongListSerializer(song).data
+
+    assert data == {"pk": song.pk, "title": "Test Song"}
+
+
+@pytest.mark.django_db
+def test_song_detail_serializer() -> None:
     schemes = ImageSchemeFactory.create_batch(
         2,
         height=100,
@@ -28,9 +38,9 @@ def test_output_data() -> None:
         schemes=schemes,
     )
 
-    data = SongOutputSerializer(song).data
+    data = SongDetailSerializer(song).data
 
-    assert data["id"] == song.pk
+    assert data["pk"] == song.pk
     assert data["title"] == "Song 1"
     assert data["text"] == "song text"
     assert data["metronome"] == 80

@@ -11,12 +11,12 @@ from apps.schemes.api.serializers import ImageSchemeSerializer
 from apps.songs.models import Song
 
 
-class SongOutputSerializer(serializers.ModelSerializer[Song]):
-    """Output song serializer."""
+class SongDetailSerializer(serializers.ModelSerializer[Song]):
+    """Song detail serializer."""
 
     chords = ChordOutputSerializer(many=True, read_only=True)
     schemes = ImageSchemeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Song
-        fields = ("id", "title", "text", "metronome", "schemes", "chords")
+        fields = ("pk", "title", "text", "metronome", "schemes", "chords")

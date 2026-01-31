@@ -11,12 +11,6 @@ from apps.songs.tests.factories import SongFactory
 
 
 @pytest.fixture
-def song_factory() -> type[SongFactory]:
-    """Fixture providing the SongFactory for creating songs in tests."""
-    return SongFactory
-
-
-@pytest.fixture
 def song() -> Song:
     """Fixture creating a song for testing.
 
