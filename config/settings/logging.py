@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -140,6 +140,16 @@ def get_logging_config(settings: Settings) -> LoggingConfig:
                 "propagate": False,
             },
             "accounts": {
+                "handlers": ["console", "file"],
+                "level": "DEBUG" if settings.DEBUG else "INFO",
+                "propagate": False,
+            },
+            "lessons": {
+                "handlers": ["console", "file"],
+                "level": "DEBUG" if settings.DEBUG else "INFO",
+                "propagate": False,
+            },
+            "courses": {
                 "handlers": ["console", "file"],
                 "level": "DEBUG" if settings.DEBUG else "INFO",
                 "propagate": False,

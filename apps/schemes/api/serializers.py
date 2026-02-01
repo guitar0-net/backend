@@ -14,4 +14,4 @@ class ImageSchemeSerializer(serializers.ModelSerializer[ImageScheme]):
 
     class Meta:
         model = ImageScheme
-        fields = ("pk", "inscription", "image", "height", "width")
+        fields = ("id", "inscription", "image", "height", "width")

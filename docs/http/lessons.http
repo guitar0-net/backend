@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+### Lessons API
+### Base URL: /api/v1/data/lessons/
+
+@baseUrl = http://localhost:8000/api/v1/data
+
+### Get all published lessons
+GET {{baseUrl}}/lessons/ HTTP/1.1
+
+### Get lesson by UUID
+# Replace with actual UUID from the list response
+@lessonUuid = 00000000-0000-0000-0000-000000000000
+
+GET {{baseUrl}}/lessons/{{lessonUuid}}/ HTTP/1.1
+
+### Get non-existent lesson (expects 404)
+GET {{baseUrl}}/lessons/00000000-0000-0000-0000-000000000000/ HTTP/1.1

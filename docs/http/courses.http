@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+### Courses API
+### Base URL: /api/v1/data/courses/
+
+@baseUrl = http://localhost:8000/api/v1/data
+
+### Get all published courses
+GET {{baseUrl}}/courses/ HTTP/1.1
+
+### Get course by UUID
+# Replace with actual UUID from the list response
+@courseUuid = ab704909-8661-4f1b-8d90-0ee430323c4d
+
+GET {{baseUrl}}/courses/{{courseUuid}}/ HTTP/1.1
+
+### Get non-existent course (expects 404)
+GET {{baseUrl}}/courses/00000000-0000-0000-0000-000000000000/ HTTP/1.1

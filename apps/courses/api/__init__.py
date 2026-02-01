@@ -2,7 +2,4 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Views for the lessons app."""
-
-
-# Create your views here.
+"""Api views and urls for the courses app."""
