@@ -4,10 +4,9 @@
 
 
 import pytest
-from django.core.exceptions import ObjectDoesNotExist
 
 from apps.chords.models import Chord
-from apps.chords.selectors import get_all_chords, get_full_chord_by_id
+from apps.chords.selectors import get_all_chords, get_chord_by_id
 from apps.chords.tests.factories import FullChordFactory
 
 
@@ -28,22 +27,24 @@ def multiple_chords_in_db(
 
 
 @pytest.mark.django_db
-def test_get_full_chord_by_id_success(chord_factory: type[FullChordFactory]) -> None:
+def test_get_chord_by_id_success(chord_factory: type[FullChordFactory]) -> None:
     chord_instance = chord_factory.create(title="E7")
 
-    retrieved_chord = get_full_chord_by_id(chord_id=chord_instance.pk)
+    retrieved_chord = get_chord_by_id(chord_instance.pk)
 
+    assert retrieved_chord is not None
     assert retrieved_chord.title == "E7"
     assert retrieved_chord.pk == chord_instance.pk
     assert retrieved_chord.positions.count() == 6
 
 
 @pytest.mark.django_db
-def test_get_full_chord_by_id_not_found() -> None:
+def test_get_chord_by_id_not_found() -> None:
     non_existent_id = 999
 
-    with pytest.raises(ObjectDoesNotExist):
-        get_full_chord_by_id(chord_id=non_existent_id)
+    result = get_chord_by_id(non_existent_id)
+
+    assert result is None
 
 
 @pytest.mark.django_db
@@ -51,10 +52,8 @@ def test_get_chords_with_positions_returns_all_chords(
     multiple_chords_in_db: tuple[Chord, Chord, Chord],
 ) -> None:
     """Test that get_chords_with_positions returns all chords ordered correctly."""
-    # Act
     qs = get_all_chords()
 
-    # Assert
     assert qs.count() == 3
     titles = [c.title for c in qs]
     assert titles == ["Am", "Bm", "F"]
