@@ -9,19 +9,13 @@ from django.db.models import QuerySet
 from .models import Chord
 
 
-def get_full_chord_by_id(*, chord_id: int) -> Chord:
-    """Get a single Chord object by ID.
-
-    Args:
-        chord_id (int): The primary key of the Chord.
+def get_chord_by_id(chord_id: int) -> Chord | None:
+    """Get a single Chord by ID with related data.
 
     Returns:
-        Chord: The optimized Chord instance.
-
-    Raises:
-        Chord.DoesNotExist: If the chord with the given ID is not found.
+        Chord or None if not found.
     """
-    return Chord.objects.select_related().prefetch_related("positions").get(id=chord_id)
+    return Chord.objects.filter(id=chord_id).prefetch_related("positions").first()
 
 
 def get_all_chords() -> QuerySet[Chord]:

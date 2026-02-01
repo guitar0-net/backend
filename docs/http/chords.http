@@ -1,146 +1,20 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-#######################################################################
-# Environment
-#######################################################################
+### Chords API
+### Base URL: /api/v1/data/chords/
 
-@base_url = http://localhost:8000
-@api_prefix = /api/v1/data
-@admin_token = {{ADMIN_TOKEN}}
+@baseUrl = http://localhost:8000/api/v1/data
 
-#######################################################################
-# CREATE chord (admin only)
-#######################################################################
+### Get all chords
+GET {{baseUrl}}/chords/ HTTP/1.1
 
-### Create Am chord
-POST {{base_url}}{{api_prefix}}/chords/
-Authorization: Bearer {{admin_token}}
-Content-Type: application/json
+### Get chord by ID
+# Replace with actual ID from the list response
+@chordId = 1
 
-{
-  "title": "Am",
-  "musical_title": "A minor",
-  "order_in_note": 1,
-  "start_fret": 1,
-  "has_barre": false,
-  "positions": [
-    { "string_number": 1, "fret": 0, "finger": 0 },
-    { "string_number": 2, "fret": 1, "finger": 1 },
-    { "string_number": 3, "fret": 2, "finger": 3 },
-    { "string_number": 4, "fret": 2, "finger": 2 },
-    { "string_number": 5, "fret": 0, "finger": 0 },
-    { "string_number": 6, "fret": 0, "finger": 0 }
-  ]
-}
+GET {{baseUrl}}/chords/{{chordId}}/ HTTP/1.1
 
-#######################################################################
-# LIST chords (public)
-#######################################################################
-
-### List all chords
-GET {{base_url}}{{api_prefix}}/chords/
-Accept: application/json
-
-#######################################################################
-# RETRIEVE chord (public)
-#######################################################################
-
-### Get chord by id
-# @prompt chord_id Enter chord id
-GET {{base_url}}{{api_prefix}}/chords/{{chord_id}}/
-Accept: application/json
-
-#######################################################################
-# UPDATE chord (admin only)
-#######################################################################
-
-### Full update chord (PUT)
-# @prompt chord_id Enter chord id
-PUT {{base_url}}{{api_prefix}}/chords/{{chord_id}}/
-Authorization: Bearer {{admin_token}}
-Content-Type: application/json
-
-{
-  "title": "Am",
-  "musical_title": "A minor (updated)",
-  "order_in_note": 1,
-  "start_fret": 1,
-  "has_barre": false,
-  "positions": [
-    { "string_number": 1, "fret": 0, "finger": 0 },
-    { "string_number": 2, "fret": 1, "finger": 1 },
-    { "string_number": 3, "fret": 2, "finger": 3 },
-    { "string_number": 4, "fret": 2, "finger": 2 },
-    { "string_number": 5, "fret": 0, "finger": 0 },
-    { "string_number": 6, "fret": 3, "finger": 4 }
-  ]
-}
-
-#######################################################################
-# PARTIAL UPDATE chord (admin only)
-#######################################################################
-
-### Patch chord (change barre flag)
-# @prompt chord_id Enter chord id
-PATCH {{base_url}}{{api_prefix}}/chords/{{chord_id}}/
-Authorization: Bearer {{admin_token}}
-Content-Type: application/json
-
-{
-  "has_barre": true
-}
-
-#######################################################################
-# DELETE chord (admin only)
-#######################################################################
-
-### Delete chord
-# @prompt chord_id Enter chord id
-DELETE {{base_url}}{{api_prefix}}/chords/{{chord_id}}/
-Authorization: Bearer {{admin_token}}
-
-#######################################################################
-# NEGATIVE CASES (manual validation playground)
-#######################################################################
-
-### Duplicate string_number (should be 400)
-POST {{base_url}}{{api_prefix}}/chords/
-Authorization: Bearer {{admin_token}}
-Content-Type: application/json
-
-{
-  "title": "Broken chord",
-  "musical_title": "Invalid",
-  "positions": [
-    { "string_number": 1, "fret": 1, "finger": 1 },
-    { "string_number": 1, "fret": 2, "finger": 2 }
-  ]
-}
-
-###
-
-### Invalid fret value (should be 400)
-POST {{base_url}}{{api_prefix}}/chords/
-Authorization: Bearer {{admin_token}}
-Content-Type: application/json
-
-{
-  "title": "Invalid fret",
-  "musical_title": "Invalid",
-  "positions": [
-    { "string_number": 1, "fret": 999, "finger": 1 }
-  ]
-}
-
-###
-
-### Unauthorized create (should be 403)
-POST {{base_url}}{{api_prefix}}/chords/
-Content-Type: application/json
-
-{
-  "title": "No auth",
-  "musical_title": "Should fail"
-}
+### Get non-existent chord (expects 404)
+GET {{baseUrl}}/chords/99999/ HTTP/1.1
