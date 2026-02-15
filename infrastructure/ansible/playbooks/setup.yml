@@ -1,0 +1,219 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+- name: Initial server setup
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3-pip
+          - python3-setuptools
+          - ufw
+          - fail2ban
+          - git
+          - htop
+          - vim
+        state: present
+
+    - name: Remove legacy Docker GPG key
+      ansible.builtin.file:
+        path: /etc/apt/trusted.gpg.d/docker-archive-keyring.gpg
+        state: absent
+
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /usr/share/keyrings/docker-archive-keyring.asc
+        mode: "0644"
+
+    - name: Remove conflicting Docker repository entries
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list
+        - /etc/apt/sources.list.d/docker.list
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.asc] https://download.docker.com/linux/ubuntu {{ ansible_facts['distribution_release'] }} stable"
+        filename: docker
+        state: present
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Start and enable Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Create deploy group
+      ansible.builtin.group:
+        name: "{{ app_group }}"
+        state: present
+
+    - name: Create deploy user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        groups: docker
+        shell: /bin/bash
+        create_home: true
+        state: present
+
+    - name: Add deploy user to sudo group
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        groups: sudo
+        append: true
+
+    - name: Allow deploy user to sudo without password
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/{{ app_user }}
+        line: "{{ app_user }} ALL=(ALL) NOPASSWD:ALL"
+        create: true
+        mode: "0440"
+        validate: "visudo -cf %s"
+
+    - name: Set up SSH authorized keys for deploy user
+      ansible.posix.authorized_key:
+        user: "{{ app_user }}"
+        state: present
+        key: "{{ lookup('env', 'DEPLOY_SSH_PUBLIC_KEY') }}"
+      when: lookup('env', 'DEPLOY_SSH_PUBLIC_KEY') != ''
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0755"
+      loop:
+        - "{{ app_dir }}"
+        - "{{ shared_dir }}"
+        - "{{ shared_dir }}/media"
+        - "{{ shared_dir }}/staticfiles"
+        - "{{ backup_dir }}"
+        - "{{ log_dir }}"
+
+    - name: Reset UFW to default
+      community.general.ufw:
+        state: reset
+
+    - name: Set UFW default policies
+      community.general.ufw:
+        direction: "{{ item.direction }}"
+        policy: "{{ item.policy }}"
+      loop:
+        - { direction: incoming, policy: deny }
+        - { direction: outgoing, policy: allow }
+
+    - name: Allow UFW ports
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: "{{ firewall_allowed_ports }}"
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+
+    - name: Configure fail2ban
+      ansible.builtin.template:
+        src: ../templates/jail.local.j2
+        dest: /etc/fail2ban/jail.local
+        mode: "0644"
+      notify: Restart fail2ban
+
+    - name: Start and enable fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    - name: Set system limits for Docker
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.conf
+        line: "{{ item }}"
+        create: true
+        mode: "0644"
+      loop:
+        - "vm.max_map_count=262144"
+        - "net.core.somaxconn=65535"
+        - "net.ipv4.tcp_max_syn_backlog=65535"
+      notify: Apply sysctl
+
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Start and enable nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Template nginx site config
+      ansible.builtin.template:
+        src: ../templates/nginx-site.j2
+        dest: "/etc/nginx/sites-available/{{ app_name }}"
+        mode: "0644"
+
+    - name: Enable nginx site
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/{{ app_name }}"
+        dest: "/etc/nginx/sites-enabled/{{ app_name }}"
+        state: link
+
+    - name: Test nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
+
+    - name: Install certbot
+      ansible.builtin.apt:
+        name:
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+  handlers:
+    - name: Restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted
+
+    - name: Apply sysctl
+      ansible.builtin.command: sysctl -p
+      changed_when: true

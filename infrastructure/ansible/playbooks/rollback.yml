@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+- name: Rollback application
+  hosts: all
+  become: true
+  become_user: "{{ app_user }}"
+
+  vars:
+    rollback_to: "{{ lookup('env', 'ROLLBACK_TO') | default('', true) }}"
+
+  tasks:
+    - name: Determine rollback version
+      block:
+        - name: Use explicit version
+          ansible.builtin.set_fact:
+            rollback_tag: "{{ rollback_to }}"
+          when: rollback_to != ''
+
+        - name: Read previous version from file
+          when: rollback_to == ''
+          block:
+            - name: Read PREVIOUS_VERSION
+              ansible.builtin.slurp:
+                src: "{{ shared_dir }}/PREVIOUS_VERSION"
+              register: prev_version_file
+
+            - name: Set rollback tag from file
+              ansible.builtin.set_fact:
+                rollback_tag: "{{ prev_version_file.content | b64decode }}"
+
+    - name: Fail if no rollback version
+      ansible.builtin.fail:
+        msg: "No rollback version available"
+      when: rollback_tag is not defined or rollback_tag == ''
+
+    - name: Read current version
+      ansible.builtin.slurp:
+        src: "{{ shared_dir }}/CURRENT_VERSION"
+      register: current_version_file
+      ignore_errors: true
+
+    - name: Display rollback info
+      ansible.builtin.debug:
+        msg: "Rolling back from {{ current_version_file.content | b64decode | default('unknown') }} to {{ rollback_tag }}"
+
+    - name: Pull previous image
+      community.docker.docker_image:
+        name: "{{ docker_image }}:{{ rollback_tag }}"
+        source: pull
+        force_source: true
+
+    - name: Re-render docker-compose with rollback tag
+      ansible.builtin.template:
+        src: ../templates/docker-compose.prod.j2
+        dest: "{{ shared_dir }}/docker-compose.yml"
+        mode: "0644"
+      vars:
+        docker_tag: "{{ rollback_tag }}"
+
+    - name: Restart with previous version
+      community.docker.docker_compose_v2:
+        project_src: "{{ shared_dir }}"
+        state: present
+        recreate: always
+
+    - name: Wait for application to be healthy
+      ansible.builtin.uri:
+        url: "{{ health_check_url }}"
+        status_code: 200
+      register: health_check
+      until: health_check.status == 200
+      retries: "{{ health_check_retries }}"
+      delay: "{{ health_check_delay }}"
+
+    - name: Update version file
+      ansible.builtin.copy:
+        content: "{{ rollback_tag }}"
+        dest: "{{ shared_dir }}/CURRENT_VERSION"
+        mode: "0644"
+
+    - name: Log rollback
+      ansible.builtin.lineinfile:
+        path: "{{ log_dir }}/deployments.log"
+        line: "{{ ansible_facts['date_time']['iso8601'] }} - ROLLBACK: Reverted to {{ docker_image }}:{{ rollback_tag }}"
+        create: true
+        mode: "0644"
+
+    - name: Display success message
+      ansible.builtin.debug:
+        msg: "Successfully rolled back to {{ docker_image }}:{{ rollback_tag }}"

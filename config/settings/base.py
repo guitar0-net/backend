@@ -40,6 +40,7 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
     ALLOWED_HOSTS: list[str] = []
+    CSRF_TRUSTED_ORIGINS: list[str] = []
 
     TEMPLATES: list[_TemplateBackend] = [
         {

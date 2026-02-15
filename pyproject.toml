@@ -26,6 +26,7 @@ dependencies = [
     "Pillow>=12.0.0",
     "django-markdownx>=4.0.9",
     "prometheus-client>=0.21.0",
+    "gunicorn>=25.1.0",
 ]
 requires-python = ">=3.12"
 readme = "README.md"
@@ -142,7 +143,7 @@ filterwarnings = ["ignore:directory \"/run/secrets\" does not exist:UserWarning"
 branch = true
 source = ["."]
 parallel = true
-omit = ["*/migrations/*", "*/tests/*", "manage.py"]
+omit = ["*/migrations/*", "*/tests/*", "manage.py", "config/gunicorn.py"]
 
 
 [tool.coverage.report]

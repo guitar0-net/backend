@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Development docker-compose configuration
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: guitar0-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: guitar0
+      POSTGRES_USER: guitar0
+      POSTGRES_PASSWORD: guitar0_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guitar0 -d guitar0"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    container_name: guitar0-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://guitar0:guitar0_dev_password@db:5432/guitar0
+    volumes:
+      - .:/app:delegated
+      - /app/.venv
+      - /app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+
+volumes:
+  postgres_data:

@@ -28,6 +28,7 @@ BUILD_DATETIME: str = settings.BUILD_DATETIME
 SECRET_KEY = settings.SECRET_KEY
 DEBUG = settings.DEBUG
 ALLOWED_HOSTS = settings.ALLOWED_HOSTS or (["*"] if DEBUG else [])
+CSRF_TRUSTED_ORIGINS = settings.CSRF_TRUSTED_ORIGINS
 TEMPLATES = settings.TEMPLATES
 
 DATABASES = {"default": dj_database_url.parse(settings.DATABASE_URL, conn_max_age=600)}
