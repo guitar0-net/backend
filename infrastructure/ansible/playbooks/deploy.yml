@@ -1,0 +1,171 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+- name: Deploy application
+  hosts: all
+  become: true
+  become_user: "{{ app_user }}"
+
+  vars:
+    docker_tag: "{{ lookup('env', 'VERSION') | default('latest', true) }}"
+
+  tasks:
+    - name: Log deployment start
+      ansible.builtin.lineinfile:
+        path: "{{ log_dir }}/deployments.log"
+        line: "{{ ansible_facts['date_time']['iso8601'] }} - Starting deployment of {{ docker_image }}:{{ docker_tag }}"
+        create: true
+        mode: "0644"
+
+    - name: Log in to Docker Hub
+      community.docker.docker_login:
+        username: "{{ lookup('env', 'DOCKERHUB_USERNAME') }}"
+        password: "{{ lookup('env', 'DOCKERHUB_TOKEN') }}"
+      when: lookup('env', 'DOCKERHUB_USERNAME') != ''
+
+    - name: Pull Docker image
+      community.docker.docker_image:
+        name: "{{ docker_image }}:{{ docker_tag }}"
+        source: pull
+        force_source: true
+
+    - name: Check for current version file
+      ansible.builtin.stat:
+        path: "{{ shared_dir }}/CURRENT_VERSION"
+      register: current_version_stat
+
+    - name: Save previous version
+      when: current_version_stat.stat.exists
+      block:
+        - name: Read current version
+          ansible.builtin.slurp:
+            src: "{{ shared_dir }}/CURRENT_VERSION"
+          register: current_version_file
+
+        - name: Write previous version
+          ansible.builtin.copy:
+            content: "{{ current_version_file.content | b64decode }}"
+            dest: "{{ shared_dir }}/PREVIOUS_VERSION"
+            mode: "0644"
+
+    - name: Save current version
+      ansible.builtin.copy:
+        content: "{{ docker_tag }}"
+        dest: "{{ shared_dir }}/CURRENT_VERSION"
+        mode: "0644"
+
+    - name: Render docker-compose.yml
+      ansible.builtin.template:
+        src: ../templates/docker-compose.prod.j2
+        dest: "{{ shared_dir }}/docker-compose.yml"
+        mode: "0644"
+
+    - name: Run database migrations
+      block:
+        - name: Start database service
+          community.docker.docker_compose_v2:
+            project_src: "{{ shared_dir }}"
+            services:
+              - db
+            state: present
+            pull: always
+
+        - name: Run migrations
+          ansible.builtin.command:
+            cmd: >
+              docker compose -f {{ shared_dir }}/docker-compose.yml
+              run --rm app
+              python manage.py migrate --noinput
+          changed_when: true
+
+        - name: Collect static files
+          ansible.builtin.command:
+            cmd: >
+              docker compose -f {{ shared_dir }}/docker-compose.yml
+              run --rm app
+              python manage.py collectstatic --noinput
+          changed_when: true
+
+    - name: Deploy and verify
+      block:
+        - name: Deploy application with docker compose
+          community.docker.docker_compose_v2:
+            project_src: "{{ shared_dir }}"
+            state: present
+            pull: never
+            recreate: always
+
+        - name: Wait for application to be healthy
+          ansible.builtin.uri:
+            url: "{{ health_check_url }}"
+            status_code: 200
+          register: health_check
+          until: health_check.status == 200
+          retries: "{{ health_check_retries }}"
+          delay: "{{ health_check_delay }}"
+
+        - name: Log deployment success
+          ansible.builtin.lineinfile:
+            path: "{{ log_dir }}/deployments.log"
+            line: "{{ ansible_facts['date_time']['iso8601'] }} - Successfully deployed {{ docker_image }}:{{ docker_tag }}"
+            create: true
+            mode: "0644"
+
+      rescue:
+        - name: Log deployment failure
+          ansible.builtin.lineinfile:
+            path: "{{ log_dir }}/deployments.log"
+            line: "{{ ansible_facts['date_time']['iso8601'] }} - FAILED deployment of {{ docker_image }}:{{ docker_tag }}"
+            create: true
+            mode: "0644"
+
+        - name: Read previous version for rollback
+          ansible.builtin.slurp:
+            src: "{{ shared_dir }}/PREVIOUS_VERSION"
+          register: rollback_version_file
+          ignore_errors: true
+
+        - name: Rollback to previous version
+          when: rollback_version_file is succeeded
+          block:
+            - name: Set rollback tag
+              ansible.builtin.set_fact:
+                rollback_tag: "{{ rollback_version_file.content | b64decode }}"
+
+            - name: Pull previous image
+              community.docker.docker_image:
+                name: "{{ docker_image }}:{{ rollback_tag }}"
+                source: pull
+                force_source: true
+
+            - name: Re-render docker-compose with previous tag
+              ansible.builtin.template:
+                src: ../templates/docker-compose.prod.j2
+                dest: "{{ shared_dir }}/docker-compose.yml"
+                mode: "0644"
+              vars:
+                docker_tag: "{{ rollback_tag }}"
+
+            - name: Start previous version
+              community.docker.docker_compose_v2:
+                project_src: "{{ shared_dir }}"
+                state: present
+                recreate: always
+
+            - name: Restore version file
+              ansible.builtin.copy:
+                content: "{{ rollback_tag }}"
+                dest: "{{ shared_dir }}/CURRENT_VERSION"
+                mode: "0644"
+
+            - name: Log rollback
+              ansible.builtin.lineinfile:
+                path: "{{ log_dir }}/deployments.log"
+                line: "{{ ansible_facts['date_time']['iso8601'] }} - ROLLBACK: Reverted to {{ docker_image }}:{{ rollback_tag }}"
+                create: true
+                mode: "0644"
+
+        - name: Fail the play after rollback
+          ansible.builtin.fail:
+            msg: "Deployment failed. {{ 'Rolled back to ' ~ docker_image ~ ':' ~ rollback_tag if rollback_version_file is succeeded else 'No previous version to rollback to.' }}"

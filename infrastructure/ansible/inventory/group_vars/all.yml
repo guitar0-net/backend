@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Application
+app_name: guitar0-backend
+app_user: deploy
+app_group: deploy
+app_dir: /opt/{{ app_name }}
+
+# Docker
+docker_image: kotlyar562/guitar0net
+docker_compose_version: "2.24.0"
+
+# Directories
+shared_dir: "{{ app_dir }}/shared"
+backup_dir: "{{ app_dir }}/backups"
+log_dir: "{{ app_dir }}/logs"
+
+# Backup retention (days)
+backup_retention_days: 30
+
+# Application port (host-side, proxied by host nginx)
+app_port: 8100
+
+# Database (containerized PostgreSQL)
+db_docker_port: 5433
+
+# Health check
+health_check_url: "http://127.0.0.1:{{ app_port }}/metrics/"
+health_check_retries: 30
+health_check_delay: 2
+
+# UFW firewall ports
+firewall_allowed_ports:
+  - 22 # SSH
+  - 80 # HTTP
+  - 443 # HTTPS
+
+# Fail2ban
+fail2ban_bantime: 3600
+fail2ban_findtime: 600
+fail2ban_maxretry: 3

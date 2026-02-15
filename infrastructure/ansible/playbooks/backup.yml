@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Database backup playbook
+---
+- name: Backup database
+  hosts: all
+  become: true
+  become_user: "{{ app_user }}"
+
+  vars:
+    backup_timestamp: "{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
+    backup_filename: "{{ app_name }}_{{ backup_timestamp }}.sql.gz"
+    backup_path: "{{ backup_dir }}/{{ backup_filename }}"
+
+  tasks:
+    - name: Ensure backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0750"
+
+    - name: Get database container name
+      community.docker.docker_container_info:
+        name: "{{ app_name }}-db-1"
+      register: db_container
+      ignore_errors: true
+
+    # Backup using docker exec if container exists
+    - name: Backup database (Docker)
+      when: db_container is defined and not db_container.failed
+      block:
+        - name: Create database backup
+          ansible.builtin.shell: |
+            docker exec {{ app_name }}-db-1 pg_dump -U {{ db_user }} {{ db_name }} | gzip > {{ backup_path }}
+          args:
+            creates: "{{ backup_path }}"
+
+    # Backup using direct connection if no container
+    - name: Backup database (Direct)
+      when: db_container is not defined or db_container.failed
+      block:
+        - name: Create database backup
+          ansible.builtin.shell: |
+            pg_dump -h {{ db_host }} -U {{ db_user }} {{ db_name }} | gzip > {{ backup_path }}
+          args:
+            creates: "{{ backup_path }}"
+          environment:
+            PGPASSWORD: "{{ db_password }}"
+
+    # Clean up old backups
+    - name: Find old backups
+      ansible.builtin.find:
+        paths: "{{ backup_dir }}"
+        patterns: "{{ app_name }}_*.sql.gz*"
+        age: "{{ backup_retention_days }}d"
+      register: old_backups
+
+    - name: Remove old backups
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ old_backups.files }}"
+
+    # Log backup
+    - name: Log backup
+      ansible.builtin.lineinfile:
+        path: "{{ log_dir }}/backups.log"
+        line: "{{ ansible_facts['date_time']['iso8601'] }} - Created backup: {{ backup_filename }}"
+        create: true
+        mode: "0644"
+
+    - name: Display backup info
+      ansible.builtin.debug:
+        msg: "Backup created: {{ backup_path }}"
