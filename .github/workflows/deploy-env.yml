@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Deploy to Environment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      environment_url:
+        required: true
+        type: string
+      inventory:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.environment_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Create Ansible vault password file
+        run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > .vault_password
+
+      - name: Deploy to ${{ inputs.environment }}
+        working-directory: infrastructure/ansible
+        run: |
+          ansible-playbook playbooks/deploy.yml \
+            -i inventory/${{ inputs.inventory }} \
+            --vault-password-file ../../.vault_password
+        env:
+          VERSION: ${{ inputs.version }}
+          GIT_SHA: ${{ github.sha }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          SSH_PRIVATE_KEY_FILE: ~/.ssh/id_rsa
+
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f .vault_password
+          rm -f ~/.ssh/id_rsa
