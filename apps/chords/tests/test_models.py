@@ -59,7 +59,7 @@ def test_finger_validation(chord: Chord) -> None:
     with pytest.raises(ValidationError):
         position.full_clean()
 
-    for f in range(0, MAX_FINGER + 1):
+    for f in range(MAX_FINGER + 1):
         pos = ChordPosition(chord=chord, string_number=1, fret=1, finger=f)
         pos.full_clean()
 

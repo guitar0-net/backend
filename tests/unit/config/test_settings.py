@@ -20,13 +20,11 @@ def env_file(
         monkeypatch.delenv(var, raising=False)
     env_path = tmp_path / ".env.development"
     env_path.write_text(
-        "\n".join([
-            "SECRET_KEY=secret-key",
-            "DATABASE_URL=sqlite:///db.sqlite3",
-            "DEBUG=True",
-            "ENVIRONMENT=development",
-            """ALLOWED_HOSTS='["localhost","127.0.0.1"]'""",
-        ])
+        "SECRET_KEY=secret-key\n"
+        "DATABASE_URL=sqlite:///db.sqlite3\n"
+        "DEBUG=True\n"
+        "ENVIRONMENT=development\n"
+        """ALLOWED_HOSTS='["localhost","127.0.0.1"]'"""
     )
     monkeypatch.chdir(tmp_path)
     yield env_path

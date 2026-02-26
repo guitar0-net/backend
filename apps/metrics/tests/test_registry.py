@@ -42,7 +42,7 @@ def test_get_registry_thread_safety() -> None:
     def get_registry_thread() -> None:
         try:
             registries.append(get_registry())
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             errors.append(e)
 
     threads = [threading.Thread(target=get_registry_thread) for _ in range(10)]

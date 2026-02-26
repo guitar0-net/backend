@@ -116,18 +116,19 @@ class PrometheusMiddleware:
         http_requests_in_progress.labels(method=method, endpoint=endpoint).inc()
 
         start_time = time.perf_counter()
+        status_code = 500
         response: HttpResponseBase | None = None
         try:
             response = self.get_response(request)
             status_code = getattr(response, "status_code", 500)
-            return response
         except Exception as e:
-            status_code = 500
             http_exceptions_total.labels(
                 endpoint=endpoint,
                 exception=e.__class__.__name__,
             ).inc()
             raise
+        else:
+            return response
         finally:
             duration = time.perf_counter() - start_time
 
