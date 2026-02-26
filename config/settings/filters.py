@@ -43,6 +43,6 @@ class SensitiveDataFilter(logging.Filter):
             try:
                 for pattern, replacement in self.PATTERNS:
                     record.msg = pattern.sub(replacement, record.msg)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error in SensitiveDataFilter: {e!s}")
         return True

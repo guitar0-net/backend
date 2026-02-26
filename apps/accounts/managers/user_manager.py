@@ -33,11 +33,11 @@ class UserManager[UserT: AbstractUser](BaseUserManager[UserT]):
             password (str | None): User's password (optional)
             extra_fields (Any): Any other fields
 
-        Raises:
-            ValueError: If email is not provided.
-
         Returns:
             UserT: The created user instance
+
+        Raises:
+            ValueError: If email is not provided.
         """
         if not email:
             raise ValueError("The Email field is required")
