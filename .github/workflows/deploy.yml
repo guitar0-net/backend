@@ -45,7 +45,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix=,format=short
+            type=raw,value=staging,enable={{is_default_branch}}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -94,7 +94,7 @@ jobs:
       environment: staging
       environment_url: https://staging.guitar0.net
       inventory: staging.yml
-      version: ${{ needs.build.outputs.version }}
+      version: staging
     secrets: inherit
 
   deploy-production:
