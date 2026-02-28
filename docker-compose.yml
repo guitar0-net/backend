@@ -4,6 +4,8 @@
 
 # Development docker-compose configuration
 
+name: guitar0-backend
+
 services:
   db:
     image: postgres:16-alpine
@@ -31,12 +33,20 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://guitar0:guitar0_dev_password@db:5432/guitar0
+      GIT_SHA: ${GIT_SHA:-unknown}
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/path=/metrics/"
+      - "prometheus.io/port=8000"
     volumes:
       - .:/app:delegated
       - /app/.venv
       - /app/staticfiles
     ports:
       - "8000:8000"
+    networks:
+      - default
+      - guitar0-network
     depends_on:
       db:
         condition: service_healthy
@@ -44,3 +54,8 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  default:
+  guitar0-network:
+    external: true

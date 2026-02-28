@@ -5,8 +5,10 @@
 .PHONY: help install update lint test migrate run shell clean checkmigrations ci \
        license-add license-check loc \
        docker-build docker-up docker-down docker-logs docker-shell docker-clean \
+       monitoring-up monitoring-down \
        ansible-setup ansible-deploy \
-       ansible-rollback ansible-rollback-prod ansible-backup ansible-backup-prod
+       ansible-rollback ansible-rollback-prod ansible-backup ansible-backup-prod \
+       ansible-monitoring ansible-monitoring-prod
 
 # Variables
 PYTHON := pdm run python
@@ -79,7 +81,8 @@ docker-build: ## Build Docker image
 	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) -f infrastructure/docker/Dockerfile .
 
 docker-up: ## Start dev environment (docker compose)
-	docker compose up -d
+	docker network create guitar0-network 2>/dev/null || true
+	GIT_SHA=$(shell git rev-parse --short HEAD) docker compose up -d
 
 docker-down: ## Stop dev environment
 	docker compose down
@@ -92,6 +95,13 @@ docker-shell: ## Shell into app container
 
 docker-clean: ## Remove containers, volumes, and images
 	docker compose down -v --rmi local
+
+monitoring-up: ## Start monitoring stack locally (Grafana at http://localhost:3000)
+	docker network create guitar0-network 2>/dev/null || true
+	docker compose -f infrastructure/observability/docker-compose.monitoring.yml up -d
+
+monitoring-down: ## Stop local monitoring stack
+	docker compose -f infrastructure/observability/docker-compose.monitoring.yml down
 
 # =============================================================================
 # Ansible (deployment)
@@ -118,3 +128,9 @@ ansible-backup: ## Backup staging database
 
 ansible-backup-prod: ## Backup production database
 	$(ANSIBLE) playbooks/backup.yml -i inventory/production.yml
+
+ansible-monitoring: ## Deploy monitoring stack to staging
+	$(ANSIBLE) playbooks/monitoring.yml -i inventory/staging.yml
+
+ansible-monitoring-prod: ## Deploy monitoring stack to production
+	$(ANSIBLE) playbooks/monitoring.yml -i inventory/production.yml
