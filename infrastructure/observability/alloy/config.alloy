@@ -1,0 +1,62 @@
+// SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+// Discover all running Docker containers
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+// Filter to guitar0-backend project containers only and add labels
+discovery.relabel "guitar0_containers" {
+  targets = discovery.docker.containers.targets
+
+  // Keep only containers from the guitar0-backend compose project
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    regex         = "guitar0-backend"
+    action        = "keep"
+  }
+
+  // Add container name label (strip leading slash)
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  // Add compose service name label
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+// Collect logs from Docker container stdout/stderr
+loki.source.docker "guitar0_logs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.guitar0_containers.output
+  forward_to = [loki.process.extract_level.receiver]
+}
+
+// Extract log level from the first word of each log line (e.g. "INFO ...", "WARNING ...")
+// and attach it as a Loki label so dashboards can filter by level.
+loki.process "extract_level" {
+  stage.regex {
+    expression = `^(?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL)`
+  }
+
+  stage.labels {
+    values = { level = "level" }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+// Send logs to Loki
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

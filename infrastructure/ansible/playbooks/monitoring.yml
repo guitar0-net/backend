@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+- name: Deploy monitoring stack
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create monitoring directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0755"
+      loop:
+        - "{{ monitoring_dir }}"
+        - "{{ monitoring_dir }}/prometheus"
+        - "{{ monitoring_dir }}/alloy"
+        - "{{ monitoring_dir }}/loki"
+        - "{{ monitoring_dir }}/grafana/provisioning/datasources"
+        - "{{ monitoring_dir }}/grafana/provisioning/dashboards"
+
+    - name: Block external access to node-exporter port
+      community.general.ufw:
+        rule: deny
+        port: "9100"
+        proto: tcp
+        comment: "Block external access to node-exporter"
+
+    - name: Create external Docker network
+      community.docker.docker_network:
+        name: guitar0-network
+        state: present
+
+    - name: Copy Prometheus config
+      ansible.builtin.copy:
+        src: ../../observability/prometheus/prometheus.yml
+        dest: "{{ monitoring_dir }}/prometheus/prometheus.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Copy Alloy config
+      ansible.builtin.copy:
+        src: ../../observability/alloy/config.alloy
+        dest: "{{ monitoring_dir }}/alloy/config.alloy"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Copy Grafana datasources provisioning
+      ansible.builtin.copy:
+        src: ../../observability/grafana/provisioning/datasources/datasources.yml
+        dest: "{{ monitoring_dir }}/grafana/provisioning/datasources/datasources.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Copy Loki config
+      ansible.builtin.copy:
+        src: ../../observability/loki/config.yml
+        dest: "{{ monitoring_dir }}/loki/config.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Copy Grafana dashboards provisioning
+      ansible.builtin.copy:
+        src: ../../observability/grafana/provisioning/dashboards/dashboards.yml
+        dest: "{{ monitoring_dir }}/grafana/provisioning/dashboards/dashboards.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Copy Grafana guitar0-backend dashboard
+      ansible.builtin.copy:
+        src: ../../observability/grafana/provisioning/dashboards/guitar0-backend.json
+        dest: "{{ monitoring_dir }}/grafana/provisioning/dashboards/guitar0-backend.json"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Copy Grafana node-exporter dashboard
+      ansible.builtin.copy:
+        src: ../../observability/grafana/provisioning/dashboards/node-exporter.json
+        dest: "{{ monitoring_dir }}/grafana/provisioning/dashboards/node-exporter.json"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Render docker-compose.monitoring.yml
+      ansible.builtin.template:
+        src: ../templates/docker-compose.monitoring.j2
+        dest: "{{ monitoring_dir }}/docker-compose.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+
+    - name: Deploy monitoring stack
+      become_user: "{{ app_user }}"
+      community.docker.docker_compose_v2:
+        project_src: "{{ monitoring_dir }}"
+        state: present
+        pull: always
+
+    - name: Configure nginx for Grafana
+      ansible.builtin.template:
+        src: ../templates/nginx-grafana.j2
+        dest: "/etc/nginx/sites-available/grafana"
+        mode: "0644"
+
+    - name: Enable Grafana nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/grafana
+        dest: /etc/nginx/sites-enabled/grafana
+        state: link
+
+    - name: Test nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded

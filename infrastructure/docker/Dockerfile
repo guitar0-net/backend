@@ -20,6 +20,7 @@ RUN pdm export --no-hashes -o requirements.txt --prod
 FROM python:3.12-slim AS production
 
 # Build arguments for versioning
+ARG VERSION=unknown
 ARG GIT_SHA=unknown
 ARG BUILD_DATETIME=unknown
 
@@ -29,6 +30,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONFAULTHANDLER=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    VERSION=${VERSION} \
     GIT_SHA=${GIT_SHA} \
     BUILD_DATETIME=${BUILD_DATETIME}
 

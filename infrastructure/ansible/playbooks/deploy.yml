@@ -2,6 +2,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+- name: Deploy monitoring stack
+  ansible.builtin.import_playbook: monitoring.yml
+
 - name: Deploy application
   hosts: all
   become: true

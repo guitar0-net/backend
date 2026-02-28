@@ -10,7 +10,6 @@ app_dir: /opt/{{ app_name }}
 
 # Docker
 docker_image: kotlyar562/guitar0net
-docker_compose_version: "2.24.0"
 
 # Directories
 shared_dir: "{{ app_dir }}/shared"
