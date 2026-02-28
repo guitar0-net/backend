@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+apiVersion: 1
+
+providers:
+  - name: Guitar0
+    orgId: 1
+    folder: Guitar0
+    folderUid: guitar0
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

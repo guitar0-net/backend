@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: guitar0-backend
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      # Keep only containers with prometheus.io/scrape=true label
+      - source_labels: [__meta_docker_container_label_prometheus_io_scrape]
+        regex: "true"
+        action: keep
+
+      # Keep only containers with prometheus.io/port label (prevents duplicates
+      # when a container is on multiple networks — Docker SD may create one target
+      # per network, so we deduplicate by requiring the port label)
+      - source_labels: [__meta_docker_container_label_prometheus_io_port]
+        regex: .+
+        action: keep
+
+      # Drop monitoring stack containers
+      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
+        regex: guitar0-monitoring
+        action: drop
+
+      # Set metrics path from container label
+      - source_labels: [__meta_docker_container_label_prometheus_io_path]
+        regex: (.+)
+        target_label: __metrics_path__
+
+      # Build scrape address from container name + port label.
+      # Uses container hostname (not IP) so it works regardless of which network
+      # Docker SD happens to return. Container name has a leading slash: /foo -> foo:8000
+      - source_labels: [__meta_docker_container_name, __meta_docker_container_label_prometheus_io_port]
+        regex: /(.+);(.+)
+        replacement: "$1:$2"
+        target_label: __address__
+
+      # Add compose service name as label
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service
+
+      # Add container name as label (strip leading slash)
+      - source_labels: [__meta_docker_container_name]
+        regex: /(.+)
+        target_label: container
+
+  - job_name: node
+    static_configs:
+      - targets: ["node-exporter:9100"]
