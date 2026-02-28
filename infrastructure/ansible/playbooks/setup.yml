@@ -213,6 +213,27 @@
           - python3-certbot-nginx
         state: present
 
+    - name: Configure nginx for Grafana
+      ansible.builtin.template:
+        src: ../templates/nginx-grafana.j2
+        dest: "/etc/nginx/sites-available/grafana"
+        mode: "0644"
+
+    - name: Enable Grafana nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/grafana
+        dest: /etc/nginx/sites-enabled/grafana
+        state: link
+
+    - name: Test nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
+
   handlers:
     - name: Restart fail2ban
       ansible.builtin.systemd:
