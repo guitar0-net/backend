@@ -201,6 +201,11 @@
         name: nginx
         state: reloaded
 
+    - name: Create shared Docker network for monitoring
+      community.docker.docker_network:
+        name: guitar0-network
+        state: present
+
     - name: Install certbot
       ansible.builtin.apt:
         name:

@@ -19,6 +19,13 @@ services:
       - {{ shared_dir }}/staticfiles:/app/staticfiles
       - {{ shared_dir }}/media:/app/media
       - {{ log_dir }}:/app/logs
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/path=/metrics/"
+      - "prometheus.io/port=8000"
+    networks:
+      - default
+      - guitar0-network
     depends_on:
       db:
         condition: service_healthy
@@ -70,3 +77,8 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  default:
+  guitar0-network:
+    external: true
