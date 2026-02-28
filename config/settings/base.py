@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
     LOG_FILE_PATH: Path = BASE_DIR / "logs" / "django.log"
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
+    VERSION: str = "unknown"
     GIT_SHA: str = "unknown"
     BUILD_DATETIME: str = "unknown"
 

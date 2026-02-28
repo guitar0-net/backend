@@ -5,7 +5,6 @@
 """Initialize settings and configure derived attributes."""
 
 import os
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import dj_database_url
@@ -18,10 +17,7 @@ settings = get_settings()
 LOGGING = get_logging_config(settings)
 os.makedirs(settings.LOG_FILE_PATH.parent, exist_ok=True)
 
-try:
-    VERSION: str = version("guitar0-backend")
-except PackageNotFoundError:
-    VERSION = "unknown"
+VERSION: str = settings.VERSION
 GIT_SHA: str = settings.GIT_SHA
 BUILD_DATETIME: str = settings.BUILD_DATETIME
 
