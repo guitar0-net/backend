@@ -50,14 +50,13 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
 
       - name: Create Ansible vault password file
-        run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > .vault_pass
+        run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > infrastructure/ansible/.vault_pass
 
       - name: Deploy to ${{ inputs.environment }}
         working-directory: infrastructure/ansible
         run: |
           ansible-playbook playbooks/deploy.yml \
-            -i inventory/${{ inputs.inventory }} \
-            --vault-password-file ../../.vault_pass
+            -i inventory/${{ inputs.inventory }}
         env:
           VERSION: ${{ inputs.version }}
           GIT_SHA: ${{ github.sha }}
@@ -68,5 +67,5 @@ jobs:
       - name: Clean up
         if: always()
         run: |
-          rm -f .vault_pass
+          rm -f infrastructure/ansible/.vault_pass
           rm -f ~/.ssh/id_rsa

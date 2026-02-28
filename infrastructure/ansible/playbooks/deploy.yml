@@ -64,6 +64,12 @@
         dest: "{{ shared_dir }}/docker-compose.yml"
         mode: "0644"
 
+    - name: Render .env file
+      ansible.builtin.template:
+        src: ../templates/env.j2
+        dest: "{{ shared_dir }}/.env"
+        mode: "0600"
+
     - name: Run database migrations
       block:
         - name: Start database service
