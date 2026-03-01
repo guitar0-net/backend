@@ -41,9 +41,12 @@ staticfiles/
 .ansible/
 .vault_pass
 
-# other
+# IDE
 .vscode
 .idea
+.vs
+
+# other
 .DS_Store
 .reuse/dep5.cache
 logs/
