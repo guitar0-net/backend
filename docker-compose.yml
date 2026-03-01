@@ -31,6 +31,8 @@ services:
       dockerfile: infrastructure/docker/Dockerfile
     container_name: guitar0-app
     restart: unless-stopped
+    env_file:
+      - .env.development
     environment:
       DATABASE_URL: postgres://guitar0:guitar0_dev_password@db:5432/guitar0
       GIT_SHA: ${GIT_SHA:-unknown}

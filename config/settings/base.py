@@ -4,11 +4,14 @@
 
 """Django configuration with typing."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal, TypedDict
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_env = os.environ.get("ENVIRONMENT", "development")
 
 
 class _TemplateBackend(TypedDict):
@@ -60,9 +63,8 @@ class Settings(BaseSettings):
     ]
 
     model_config = SettingsConfigDict(
-        env_file=f".env.{ENVIRONMENT}",
+        env_file=".env.development" if _env == "development" else None,
         env_file_encoding="utf-8",
-        secrets_dir="/run/secrets",
         extra="ignore",
         case_sensitive=False,
     )
