@@ -85,12 +85,6 @@
         create_home: true
         state: present
 
-    - name: Add deploy user to sudo group
-      ansible.builtin.user:
-        name: "{{ app_user }}"
-        groups: sudo
-        append: true
-
     - name: Allow deploy user to sudo without password
       ansible.builtin.lineinfile:
         path: /etc/sudoers.d/{{ app_user }}
