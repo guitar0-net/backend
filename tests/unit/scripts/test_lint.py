@@ -15,7 +15,7 @@ type MockRun = list[list[str]]
 
 
 @pytest.fixture
-def mock_run(monkeypatch: pytest.MonkeyPatch) -> Generator[MockRun, None, None]:
+def mock_run(monkeypatch: pytest.MonkeyPatch) -> Generator[MockRun]:
     """Мок subprocess.run."""
     calls: MockRun = []
 

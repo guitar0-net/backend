@@ -15,7 +15,7 @@ from config.settings.base import Settings
 def env_file(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-) -> Generator[Path, None, None]:
+) -> Generator[Path]:
     for var in ["SECRET_KEY", "DATABASE_URL", "DEBUG", "ENVIRONMENT", "ALLOWED_HOSTS"]:
         monkeypatch.delenv(var, raising=False)
     env_path = tmp_path / ".env.development"

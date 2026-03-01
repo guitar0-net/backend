@@ -17,7 +17,7 @@ authors = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "Django>=5.2.8",
+    "Django>=6.0.2",
     "djangorestframework>=3.16.1",
     "pydantic-settings>=2.11.0",
     "dj-database-url>=3.0.1",
@@ -61,7 +61,7 @@ test = [
 source = "scm"
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 plugins = [
     "pydantic.mypy",
     "mypy_django_plugin.main",
@@ -84,7 +84,7 @@ warn_unused_configs = true
 show_error_codes = true
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py313"
 line-length = 88
 fix = true
 extend-exclude = ["migrations"]

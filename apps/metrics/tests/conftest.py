@@ -11,7 +11,7 @@ import pytest
 
 
 @pytest.fixture
-def fresh_registry() -> Generator[None, None, None]:
+def fresh_registry() -> Generator[None]:
     """Provide a fresh metrics registry for a single test.
 
     This fixture resets the registry before the test and reloads the metrics
