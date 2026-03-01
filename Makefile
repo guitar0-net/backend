@@ -11,9 +11,12 @@
        ansible-monitoring ansible-monitoring-prod
 
 # Variables
+SHELL := /bin/bash
 PYTHON := pdm run python
 PDM := pdm run
 DJANGO := $(PYTHON) manage.py
+ENV_FILE := .env.development
+WITH_ENV := set -a && source $(ENV_FILE) && set +a &&
 
 # =============================================================================
 # Development
@@ -33,22 +36,22 @@ lint: ## Run linters
 	$(PDM) lint
 
 test: ## Run tests
-	$(PDM) pytest
+	$(WITH_ENV) $(PDM) pytest
 
 ci: lint test ## Run lint + tests (CI check)
 
 run: migrate ## Run dev server (with migrations)
-	$(DJANGO) runserver 0.0.0.0:8000
+	$(WITH_ENV) $(DJANGO) runserver 0.0.0.0:8000
 
 shell: ## Open Django shell
-	$(PDM) python manage.py shell
+	$(WITH_ENV) $(DJANGO) shell
 
 migrate: ## Run database migrations
-	$(DJANGO) makemigrations
-	$(DJANGO) migrate
+	$(WITH_ENV) $(DJANGO) makemigrations
+	$(WITH_ENV) $(DJANGO) migrate
 
 checkmigrations: ## Check for unapplied migrations (dry-run)
-	$(DJANGO) makemigrations --check --dry-run --no-input
+	$(WITH_ENV) $(DJANGO) makemigrations --check --dry-run --no-input
 
 clean: ## Remove temporary files (.pyc, caches, coverage)
 	find . -name "**/*.pyc" -delete

@@ -43,6 +43,8 @@ dev = [
     "djangorestframework-stubs>=3.16.5",
     "commitizen>=4.9.1",
     "reuse>=6.2.0",
+    "bandit[toml,sarif]>=1.8.3",
+    "pip-audit>=2.9.0",
 ]
 test = [
     "pytest>=8.4.2",
@@ -149,6 +151,9 @@ omit = ["*/migrations/*", "*/tests/*", "manage.py", "config/gunicorn.py"]
 [tool.coverage.report]
 fail_under = 90
 show_missing = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "migrations", ".venv"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
