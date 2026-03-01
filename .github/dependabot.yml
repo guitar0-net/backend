@@ -32,7 +32,7 @@ updates:
         dependency-type: "development"
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/infrastructure/docker"
     target-branch: "main"
     schedule:
       interval: "weekly"
