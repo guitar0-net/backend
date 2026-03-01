@@ -153,7 +153,7 @@ fail_under = 90
 show_missing = true
 
 [tool.bandit]
-exclude_dirs = ["tests", "migrations"]
+exclude_dirs = ["tests", "migrations", ".venv"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
