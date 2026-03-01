@@ -109,10 +109,50 @@ jobs:
           slug: guitar0-net/server
           files: coverage.xml
 
+  security:
+    name: Security checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PDM with cache
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.12"
+          cache: true
+          cache-dependency-path: |
+            pdm.lock
+            pyproject.toml
+
+      - name: Install dependencies
+        run: pdm install --frozen-lockfile
+
+      - name: Bandit — SAST scan
+        id: bandit
+        run: pdm run bandit -c pyproject.toml -ll -r . -f sarif -o bandit.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit.sarif
+
+      - name: Fail if Bandit found issues
+        if: steps.bandit.outcome == 'failure'
+        run: exit 1
+
+      - name: pip-audit — dependency CVE scan
+        run: |
+          pdm export --no-hashes -o /tmp/requirements.txt
+          pdm run pip-audit -r /tmp/requirements.txt
+
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, tests]
+    needs: [lint, typecheck, tests, security]
 
     steps:
       - name: Checkout repository
