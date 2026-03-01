@@ -43,6 +43,7 @@ staticfiles/
 
 # other
 .vscode
+.idea
 .DS_Store
 .reuse/dep5.cache
 logs/
