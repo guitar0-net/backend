@@ -43,7 +43,7 @@ dev = [
     "djangorestframework-stubs>=3.16.5",
     "commitizen>=4.9.1",
     "reuse>=6.2.0",
-    "bandit[toml]>=1.8.3",
+    "bandit[toml,sarif]>=1.8.3",
     "pip-audit>=2.9.0",
 ]
 test = [
