@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13"]
 
     steps:
       - name: Checkout repository
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13"]
 
     env:
       SECRET_KEY: "dummy-secret-key"
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13"]
 
     env:
       SECRET_KEY: "dummy-secret-key"
@@ -120,7 +120,7 @@ jobs:
       - name: Set up PDM with cache
         uses: pdm-project/setup-pdm@v4
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: true
           cache-dependency-path: |
             pdm.lock

@@ -17,7 +17,7 @@ from apps.metrics.registry import get_registry, reset_registry
 
 
 @pytest.fixture(autouse=True)
-def isolate_registry() -> Generator[None, None, None]:
+def isolate_registry() -> Generator[None]:
     """Isolate each test by resetting registry before and after."""
     from apps.metrics import metrics as metrics_module
 
