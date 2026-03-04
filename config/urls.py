@@ -27,5 +27,7 @@ urlpatterns = [
     path("api/v1/data/", include("apps.chords.api.v1.urls")),
     path("api/v1/data/", include("apps.lessons.api.v1.urls")),
     path("api/v1/data/", include("apps.courses.api.v1.urls")),
+    path("api/v1/", include("apps.announcements.api.v1.urls")),
     path("metrics/", include("apps.metrics.urls")),
+    path("markdownx/", include("markdownx.urls")),
 ]
