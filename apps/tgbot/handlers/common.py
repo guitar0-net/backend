@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 from aiogram import Router, types
 from aiogram.filters import Command, CommandObject
 from example_database import db
