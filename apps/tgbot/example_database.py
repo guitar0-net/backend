@@ -12,7 +12,6 @@ class Database:
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
                 full_name TEXT,
-                is_subscribed INTEGER DEFAULT 1
             )
         """)
 
@@ -30,7 +29,7 @@ class Database:
 
     def add_user(self, user_id, full_name):
         self.cursor.execute(
-            "INSERT OR IGNORE INTO users (user_id, full_name, is_subscribed) VALUES (?, ?, 1)", 
+            "INSERT OR IGNORE INTO users (user_id, full_name) VALUES (?, ?)", 
             (user_id, full_name)
         )
         self.conn.commit()
