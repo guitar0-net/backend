@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# Monitoring stack: Prometheus + Loki + Alloy + Grafana
+# Monitoring stack: Prometheus + Loki + Alloy + Grafana + Alertmanager
 # Requires external Docker network: docker network create guitar0-network
-# Requires .env file with GRAFANA_ADMIN_PASSWORD
+# Requires .env file with: GRAFANA_ADMIN_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 name: guitar0-monitoring
 
@@ -15,6 +15,7 @@ services:
     user: root  # required for Docker socket access
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - prometheus_data:/prometheus
     command:
@@ -24,6 +25,22 @@ services:
     networks:
       - monitoring
       - guitar0-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.31.1
+    restart: unless-stopped
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - --config.file=/etc/alertmanager/config.yml
+      - --config.expand-env=true
+      - --storage.path=/alertmanager
+    environment:
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+      TELEGRAM_CHAT_ID: "${TELEGRAM_CHAT_ID}"
+    networks:
+      - monitoring
 
   node-exporter:
     image: prom/node-exporter:v1.8.2
@@ -85,6 +102,7 @@ services:
 
 volumes:
   prometheus_data:
+  alertmanager_data:
   loki_data:
   grafana_data:
 

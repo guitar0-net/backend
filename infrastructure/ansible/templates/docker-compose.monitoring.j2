@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# Monitoring stack: Prometheus + Loki + Alloy + Grafana
+# Monitoring stack: Prometheus + Loki + Alloy + Grafana + Alertmanager
 # Deployed to: {{ monitoring_dir }}
 
 name: guitar0-monitoring
@@ -14,6 +14,7 @@ services:
     user: root
     volumes:
       - {{ monitoring_dir }}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - {{ monitoring_dir }}/prometheus/rules:/etc/prometheus/rules:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - prometheus_data:/prometheus
     command:
@@ -23,6 +24,18 @@ services:
     networks:
       - monitoring
       - guitar0-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    restart: unless-stopped
+    volumes:
+      - {{ monitoring_dir }}/alertmanager/config.yml:/etc/alertmanager/config.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - --config.file=/etc/alertmanager/config.yml
+      - --storage.path=/alertmanager
+    networks:
+      - monitoring
 
   node-exporter:
     image: prom/node-exporter:v1.8.2
@@ -86,6 +99,7 @@ services:
 
 volumes:
   prometheus_data:
+  alertmanager_data:
   loki_data:
   grafana_data:
 
