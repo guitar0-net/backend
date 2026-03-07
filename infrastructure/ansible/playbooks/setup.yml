@@ -167,33 +167,39 @@
       ansible.builtin.apt:
         name: nginx
         state: present
+      tags: nginx
 
     - name: Start and enable nginx
       ansible.builtin.systemd:
         name: nginx
         state: started
         enabled: true
+      tags: nginx
 
     - name: Template nginx site config
       ansible.builtin.template:
         src: ../templates/nginx-site.j2
         dest: "/etc/nginx/sites-available/{{ app_name }}"
         mode: "0644"
+      tags: nginx
 
     - name: Enable nginx site
       ansible.builtin.file:
         src: "/etc/nginx/sites-available/{{ app_name }}"
         dest: "/etc/nginx/sites-enabled/{{ app_name }}"
         state: link
+      tags: nginx
 
     - name: Test nginx configuration
       ansible.builtin.command: nginx -t
       changed_when: false
+      tags: nginx
 
     - name: Reload nginx
       ansible.builtin.systemd:
         name: nginx
         state: reloaded
+      tags: nginx
 
     - name: Create shared Docker network for monitoring
       community.docker.docker_network:
@@ -212,21 +218,25 @@
         src: ../templates/nginx-grafana.j2
         dest: "/etc/nginx/sites-available/grafana"
         mode: "0644"
+      tags: nginx
 
     - name: Enable Grafana nginx site
       ansible.builtin.file:
         src: /etc/nginx/sites-available/grafana
         dest: /etc/nginx/sites-enabled/grafana
         state: link
+      tags: nginx
 
     - name: Test nginx configuration
       ansible.builtin.command: nginx -t
       changed_when: false
+      tags: nginx
 
     - name: Reload nginx
       ansible.builtin.systemd:
         name: nginx
         state: reloaded
+      tags: nginx
 
   handlers:
     - name: Restart fail2ban
