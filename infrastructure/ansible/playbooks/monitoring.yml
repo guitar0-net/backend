@@ -17,6 +17,8 @@
       loop:
         - "{{ monitoring_dir }}"
         - "{{ monitoring_dir }}/prometheus"
+        - "{{ monitoring_dir }}/prometheus/rules"
+        - "{{ monitoring_dir }}/alertmanager"
         - "{{ monitoring_dir }}/alloy"
         - "{{ monitoring_dir }}/loki"
         - "{{ monitoring_dir }}/grafana/provisioning/datasources"
@@ -41,6 +43,33 @@
         owner: "{{ app_user }}"
         group: "{{ app_group }}"
         mode: "0644"
+
+    - name: Copy Prometheus recording rules
+      ansible.builtin.copy:
+        src: ../../observability/prometheus/rules/recording.yml
+        dest: "{{ monitoring_dir }}/prometheus/rules/recording.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+      notify: Reload prometheus
+
+    - name: Copy Prometheus alert rules
+      ansible.builtin.copy:
+        src: ../../observability/prometheus/rules/alerts.yml
+        dest: "{{ monitoring_dir }}/prometheus/rules/alerts.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
+      notify: Reload prometheus
+
+    - name: Render Alertmanager config
+      ansible.builtin.template:
+        src: ../templates/alertmanager-config.j2
+        dest: "{{ monitoring_dir }}/alertmanager/config.yml"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0640"
+      notify: Reload alertmanager
 
     - name: Copy Alloy config
       ansible.builtin.copy:
@@ -104,3 +133,20 @@
         project_src: "{{ monitoring_dir }}"
         state: present
         pull: always
+
+  handlers:
+    - name: Reload prometheus
+      become_user: "{{ app_user }}"
+      community.docker.docker_compose_v2:
+        project_src: "{{ monitoring_dir }}"
+        services:
+          - prometheus
+        state: restarted
+
+    - name: Reload alertmanager
+      become_user: "{{ app_user }}"
+      community.docker.docker_compose_v2:
+        project_src: "{{ monitoring_dir }}"
+        services:
+          - alertmanager
+        state: restarted
