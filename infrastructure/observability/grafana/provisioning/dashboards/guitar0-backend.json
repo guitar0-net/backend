@@ -73,7 +73,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(guitar0_backend_http_requests_total{container=~\"$container\"}[$__rate_interval]))",
+          "expr": "sum(guitar0:http_requests:rate5m{container=~\"$container\"})",
           "legendFormat": "RPS",
           "refId": "A"
         }
@@ -141,7 +141,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(guitar0_backend_http_requests_total{status_code=~\"[45]..\",container=~\"$container\"}[$__rate_interval])) / sum(rate(guitar0_backend_http_requests_total{container=~\"$container\"}[$__rate_interval])) * 100",
+          "expr": "guitar0:http_error_rate:ratio5m{container=~\"$container\"} * 100",
           "legendFormat": "Error Rate",
           "refId": "A"
         }
@@ -209,7 +209,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(guitar0_backend_http_request_duration_seconds_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_request_duration_p99:5m{container=~\"$container\"}",
           "legendFormat": "P99",
           "refId": "A"
         }
@@ -574,7 +574,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(guitar0_backend_http_requests_total{status_code=~\"2..\",container=~\"$container\"}[$__rate_interval]))",
+          "expr": "sum(guitar0:http_requests_2xx:rate5m{container=~\"$container\"})",
           "legendFormat": "2xx",
           "refId": "A"
         },
@@ -583,7 +583,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(guitar0_backend_http_requests_total{status_code=~\"4..\",container=~\"$container\"}[$__rate_interval]))",
+          "expr": "sum(guitar0:http_requests_4xx:rate5m{container=~\"$container\"})",
           "legendFormat": "4xx",
           "refId": "B"
         },
@@ -592,7 +592,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(guitar0_backend_http_requests_total{status_code=~\"5..\",container=~\"$container\"}[$__rate_interval]))",
+          "expr": "sum(guitar0:http_requests_5xx:rate5m{container=~\"$container\"})",
           "legendFormat": "5xx",
           "refId": "C"
         }
@@ -750,7 +750,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(guitar0_backend_http_request_duration_seconds_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_request_duration_p50:5m{container=~\"$container\"}",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -759,7 +759,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.90, sum(rate(guitar0_backend_http_request_duration_seconds_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_request_duration_p90:5m{container=~\"$container\"}",
           "legendFormat": "P90",
           "refId": "B"
         },
@@ -768,7 +768,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(guitar0_backend_http_request_duration_seconds_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_request_duration_p99:5m{container=~\"$container\"}",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -966,7 +966,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(guitar0_backend_http_requests_total{status_code=~\"4..\",container=~\"$container\"}[$__rate_interval])) / sum(rate(guitar0_backend_http_requests_total{container=~\"$container\"}[$__rate_interval])) * 100",
+          "expr": "guitar0:http_error_rate_4xx:ratio5m{container=~\"$container\"} * 100",
           "legendFormat": "4xx Error Rate",
           "refId": "A"
         },
@@ -975,7 +975,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(guitar0_backend_http_requests_total{status_code=~\"5..\",container=~\"$container\"}[$__rate_interval])) / sum(rate(guitar0_backend_http_requests_total{container=~\"$container\"}[$__rate_interval])) * 100",
+          "expr": "guitar0:http_error_rate_5xx:ratio5m{container=~\"$container\"} * 100",
           "legendFormat": "5xx Error Rate",
           "refId": "B"
         }
@@ -1132,7 +1132,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(guitar0_backend_http_response_size_bytes_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_response_size_p50:5m{container=~\"$container\"}",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -1141,7 +1141,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.90, sum(rate(guitar0_backend_http_response_size_bytes_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_response_size_p90:5m{container=~\"$container\"}",
           "legendFormat": "P90",
           "refId": "B"
         },
@@ -1150,7 +1150,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(guitar0_backend_http_response_size_bytes_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_response_size_p99:5m{container=~\"$container\"}",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -1223,7 +1223,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(guitar0_backend_http_request_size_bytes_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_request_size_p50:5m{container=~\"$container\"}",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -1232,7 +1232,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.90, sum(rate(guitar0_backend_http_request_size_bytes_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_request_size_p90:5m{container=~\"$container\"}",
           "legendFormat": "P90",
           "refId": "B"
         },
@@ -1241,7 +1241,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(guitar0_backend_http_request_size_bytes_bucket{container=~\"$container\"}[$__rate_interval])) by (le))",
+          "expr": "guitar0:http_request_size_p99:5m{container=~\"$container\"}",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -1330,5 +1330,5 @@
   "timezone": "browser",
   "title": "Guitar0 Backend",
   "uid": "guitar0-backend",
-  "version": 1
+  "version": 3
 }

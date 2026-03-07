@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+groups:
+  - name: guitar0_recording
+    interval: 30s
+    rules:
+      # ── Request rates ────────────────────────────────────────────────────────
+
+      - record: guitar0:http_requests:rate5m
+        expr: sum by (container) (rate(guitar0_backend_http_requests_total[5m]))
+
+      - record: guitar0:http_requests_2xx:rate5m
+        expr: sum by (container) (rate(guitar0_backend_http_requests_total{status_code=~"2.."}[5m]))
+
+      - record: guitar0:http_requests_4xx:rate5m
+        expr: sum by (container) (rate(guitar0_backend_http_requests_total{status_code=~"4.."}[5m]))
+
+      - record: guitar0:http_requests_5xx:rate5m
+        expr: sum by (container) (rate(guitar0_backend_http_requests_total{status_code=~"5.."}[5m]))
+
+      # ── Error rate ratios (0–1) ───────────────────────────────────────────────
+
+      - record: guitar0:http_error_rate:ratio5m
+        expr: >-
+          sum by (container) (rate(guitar0_backend_http_requests_total{status_code=~"[45].."}[5m]))
+          / sum by (container) (rate(guitar0_backend_http_requests_total[5m]))
+
+      - record: guitar0:http_error_rate_4xx:ratio5m
+        expr: >-
+          sum by (container) (rate(guitar0_backend_http_requests_total{status_code=~"4.."}[5m]))
+          / sum by (container) (rate(guitar0_backend_http_requests_total[5m]))
+
+      - record: guitar0:http_error_rate_5xx:ratio5m
+        expr: >-
+          sum by (container) (rate(guitar0_backend_http_requests_total{status_code=~"5.."}[5m]))
+          / sum by (container) (rate(guitar0_backend_http_requests_total[5m]))
+
+      # ── Latency percentiles (histogram_quantile — самые тяжёлые) ─────────────
+
+      - record: guitar0:http_request_duration_p50:5m
+        expr: >-
+          histogram_quantile(0.50,
+            sum by (container, le) (rate(guitar0_backend_http_request_duration_seconds_bucket[5m])))
+
+      - record: guitar0:http_request_duration_p90:5m
+        expr: >-
+          histogram_quantile(0.90,
+            sum by (container, le) (rate(guitar0_backend_http_request_duration_seconds_bucket[5m])))
+
+      - record: guitar0:http_request_duration_p99:5m
+        expr: >-
+          histogram_quantile(0.99,
+            sum by (container, le) (rate(guitar0_backend_http_request_duration_seconds_bucket[5m])))
+
+      # ── Response size percentiles ─────────────────────────────────────────────
+
+      - record: guitar0:http_response_size_p50:5m
+        expr: >-
+          histogram_quantile(0.50,
+            sum by (container, le) (rate(guitar0_backend_http_response_size_bytes_bucket[5m])))
+
+      - record: guitar0:http_response_size_p90:5m
+        expr: >-
+          histogram_quantile(0.90,
+            sum by (container, le) (rate(guitar0_backend_http_response_size_bytes_bucket[5m])))
+
+      - record: guitar0:http_response_size_p99:5m
+        expr: >-
+          histogram_quantile(0.99,
+            sum by (container, le) (rate(guitar0_backend_http_response_size_bytes_bucket[5m])))
+
+      # ── Request size percentiles ──────────────────────────────────────────────
+
+      - record: guitar0:http_request_size_p50:5m
+        expr: >-
+          histogram_quantile(0.50,
+            sum by (container, le) (rate(guitar0_backend_http_request_size_bytes_bucket[5m])))
+
+      - record: guitar0:http_request_size_p90:5m
+        expr: >-
+          histogram_quantile(0.90,
+            sum by (container, le) (rate(guitar0_backend_http_request_size_bytes_bucket[5m])))
+
+      - record: guitar0:http_request_size_p99:5m
+        expr: >-
+          histogram_quantile(0.99,
+            sum by (container, le) (rate(guitar0_backend_http_request_size_bytes_bucket[5m])))
