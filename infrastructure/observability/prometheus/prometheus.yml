@@ -59,6 +59,10 @@ scrape_configs:
         regex: /(.+)
         target_label: container
 
+      # Add environment label (dev / staging / production)
+      - source_labels: [__meta_docker_container_label_environment]
+        target_label: env
+
   - job_name: node
     static_configs:
       - targets: ["node-exporter:9100"]

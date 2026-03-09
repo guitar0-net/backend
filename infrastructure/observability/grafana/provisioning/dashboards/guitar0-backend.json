@@ -1277,14 +1277,36 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(guitar0_backend_http_requests_total, container)",
+        "definition": "label_values(guitar0_backend_http_requests_total, env)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "env",
+        "options": [],
+        "query": {
+          "query": "label_values(guitar0_backend_http_requests_total, env)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "type": "query",
+        "label": "Environment"
+      },
+      {
+        "allValue": ".+",
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(guitar0_backend_http_requests_total{env=~\"$env\"}, container)",
         "hide": 0,
         "includeAll": true,
         "multi": true,
         "name": "container",
         "options": [],
         "query": {
-          "query": "label_values(guitar0_backend_http_requests_total, container)",
+          "query": "label_values(guitar0_backend_http_requests_total{env=~\"$env\"}, container)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -1330,5 +1352,5 @@
   "timezone": "browser",
   "title": "Guitar0 Backend",
   "uid": "guitar0-backend",
-  "version": 3
+  "version": 4
 }

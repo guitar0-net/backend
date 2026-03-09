@@ -31,6 +31,12 @@ discovery.relabel "guitar0_containers" {
     source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
     target_label  = "service"
   }
+
+  // Add environment label (development / staging / production)
+  rule {
+    source_labels = ["__meta_docker_container_label_environment"]
+    target_label  = "env"
+  }
 }
 
 // Collect logs from Docker container stdout/stderr
