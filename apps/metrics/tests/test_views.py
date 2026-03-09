@@ -18,7 +18,7 @@ def test_metrics_view_returns_200_and_content_type(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_metrics_view_contains_http_metrics_definitions(client: Client) -> None:
-    client.get("/api/v1/data/chords/")
+    client.get("/api/v1/chords/")
 
     response = client.get("/metrics/")
     content = response.content.decode("utf-8")
