@@ -2,8 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# Application
-app_name: guitar0-backend
+# Application (app_name, app_port, db_docker_port are set per-environment in group_vars/<env>/vault.yml)
 app_user: deploy
 app_group: deploy
 app_dir: /opt/{{ app_name }}
@@ -18,12 +17,6 @@ log_dir: "{{ app_dir }}/logs"
 
 # Backup retention (days)
 backup_retention_days: 30
-
-# Application port (host-side, proxied by host nginx)
-app_port: 8100
-
-# Database (containerized PostgreSQL)
-db_docker_port: 5433
 
 # Health check
 health_check_url: "http://127.0.0.1:{{ app_port }}/metrics/"

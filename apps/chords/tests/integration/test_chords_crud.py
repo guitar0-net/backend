@@ -31,12 +31,12 @@ def test_chords_list_and_retrieve_flow(
         has_barre=False,
     )
 
-    list_response = client.get("/api/v1/data/chords/")
+    list_response = client.get("/api/v1/chords/")
 
     assert list_response.status_code == status.HTTP_200_OK
     assert any(c["id"] == chord.pk for c in list_response.json())
 
-    retrieve_response = client.get(f"/api/v1/data/chords/{chord.pk}/")
+    retrieve_response = client.get(f"/api/v1/chords/{chord.pk}/")
 
     assert retrieve_response.status_code == status.HTTP_200_OK
     data = retrieve_response.json()
@@ -49,6 +49,6 @@ def test_chords_list_and_retrieve_flow(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_chords_retrieve_not_found(client: APIClient) -> None:
-    response = client.get("/api/v1/data/chords/99999/")
+    response = client.get("/api/v1/chords/99999/")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND

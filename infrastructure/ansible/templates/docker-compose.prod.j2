@@ -23,6 +23,7 @@ services:
       - "prometheus.io/scrape=true"
       - "prometheus.io/path=/metrics/"
       - "prometheus.io/port=8000"
+      - "environment={{ 'staging' if 'staging' in group_names else 'production' }}"
     networks:
       - default
       - guitar0-network
