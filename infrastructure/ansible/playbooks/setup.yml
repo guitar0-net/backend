@@ -115,10 +115,6 @@
         - "{{ backup_dir }}"
         - "{{ log_dir }}"
 
-    - name: Reset UFW to default
-      community.general.ufw:
-        state: reset
-
     - name: Set UFW default policies
       community.general.ufw:
         direction: "{{ item.direction }}"
@@ -174,6 +170,16 @@
         name: nginx
         state: started
         enabled: true
+      tags: nginx
+
+    - name: Deploy shared nginx rate limits config
+      ansible.builtin.copy:
+        content: |
+          # Shared rate limiting zones (all environments)
+          limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+          limit_req_zone $binary_remote_addr zone=general_limit:10m rate=30r/s;
+        dest: /etc/nginx/conf.d/rate-limits.conf
+        mode: "0644"
       tags: nginx
 
     - name: Template nginx site config

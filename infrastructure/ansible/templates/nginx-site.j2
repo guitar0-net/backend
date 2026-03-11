@@ -5,10 +5,6 @@
 # Nginx config for {{ app_name }} ({{ app_env }})
 # SSL will be added by: certbot --nginx {% for d in nginx_domains %}-d {{ d.server_name }} {% endfor %}
 
-# Rate limiting zones
-limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
-limit_req_zone $binary_remote_addr zone=general_limit:10m rate=30r/s;
-
 {% for domain in nginx_domains %}
 server {
     listen 80;

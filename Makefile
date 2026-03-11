@@ -6,7 +6,7 @@
        license-add license-check loc \
        docker-build docker-up docker-down docker-logs docker-shell docker-clean \
        monitoring-up monitoring-down \
-       ansible-setup ansible-deploy \
+       ansible-setup ansible-setup-prod ansible-deploy \
        ansible-rollback ansible-rollback-prod ansible-backup ansible-backup-prod \
        ansible-monitoring ansible-monitoring-prod
 
@@ -116,6 +116,9 @@ ANSIBLE := cd $(ANSIBLE_DIR) && SSH_PRIVATE_KEY_FILE=$(SSH_KEY) ansible-playbook
 
 ansible-setup: ## Initial server setup (staging)
 	$(ANSIBLE) playbooks/setup.yml -i inventory/staging.yml
+
+ansible-setup-prod: ## Initial server setup (production)
+	$(ANSIBLE) playbooks/setup.yml -i inventory/production.yml
 
 ansible-deploy: ## Deploy to staging
 	$(ANSIBLE) playbooks/deploy.yml -i inventory/staging.yml

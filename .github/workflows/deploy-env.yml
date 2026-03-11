@@ -10,9 +10,6 @@ on:
       environment:
         required: true
         type: string
-      environment_url:
-        required: true
-        type: string
       inventory:
         required: true
         type: string
@@ -26,7 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}
-      url: ${{ inputs.environment_url }}
 
     steps:
       - name: Checkout repository
