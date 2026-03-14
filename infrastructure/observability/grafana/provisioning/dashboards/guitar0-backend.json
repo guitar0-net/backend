@@ -1284,6 +1284,11 @@
         "options": [
           {
             "selected": false,
+            "text": "development",
+            "value": "development"
+          },
+          {
+            "selected": false,
             "text": "production",
             "value": "production"
           },
@@ -1293,7 +1298,7 @@
             "value": "staging"
           }
         ],
-        "query": "production,staging",
+        "query": "development,production,staging",
         "type": "custom",
         "label": "Environment"
       },
