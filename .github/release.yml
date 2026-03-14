@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+changelog:
+  categories:
+    - title: "🚀 Features"
+      labels:
+        - feature
+    - title: "🐛 Bug Fixes"
+      labels:
+        - bug
+    - title: "🔒 Security"
+      labels:
+        - security
+    - title: "🏗 Infrastructure"
+      labels:
+        - infrastructure
+    - title: "🧹 Maintenance"
+      labels:
+        - chore
+        - dependencies
+    - title: "📦 Other Changes"
