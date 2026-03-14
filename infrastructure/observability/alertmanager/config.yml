@@ -20,12 +20,14 @@ receivers:
         parse_mode: HTML
         message: |-
           {{ range .Alerts -}}
-          {{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} <b>[{{ .Labels.severity | toUpper }}] {{ .Annotations.summary }}</b>
+          {{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} <b>[{{ .Labels.severity | toUpper }}]{{ with .Labels.env }}[{{ . | toUpper }}]{{ end }} {{ .Annotations.summary }}</b>
           {{ .Annotations.description }}
           {{ end }}
 
 inhibit_rules:
   - source_matchers:
-      - alertname="Guitar0BackendDown"
+      - alertname=~"Guitar0BackendDown.*"
     target_matchers:
       - alertname=~"Guitar0High.*"
+    equal:
+      - env
