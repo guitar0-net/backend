@@ -32,6 +32,10 @@
         name: "{{ docker_image }}:{{ docker_tag }}"
         source: pull
         force_source: true
+      retries: 3
+      delay: 10
+      register: pull_result
+      until: pull_result is succeeded
 
     - name: Check for current version file
       ansible.builtin.stat:
@@ -147,6 +151,10 @@
                 name: "{{ docker_image }}:{{ rollback_tag }}"
                 source: pull
                 force_source: true
+              retries: 3
+              delay: 10
+              register: rollback_pull_result
+              until: rollback_pull_result is succeeded
 
             - name: Re-render docker-compose with previous tag
               ansible.builtin.template:
