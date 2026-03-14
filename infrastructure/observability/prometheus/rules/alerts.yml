@@ -4,11 +4,22 @@
 groups:
   - name: guitar0_alerts
     rules:
-      - alert: Guitar0BackendDown
-        expr: absent(up{job="guitar0-backend"}) or up{job="guitar0-backend"} == 0
+      - alert: Guitar0BackendDownProduction
+        expr: absent(up{job="guitar0-backend", env="production"}) or up{job="guitar0-backend", env="production"} == 0
         for: 2m
         labels:
           severity: critical
+          env: production
+        annotations:
+          summary: "Guitar0 backend недоступен"
+          description: "Backend не отвечает более 2 минут."
+
+      - alert: Guitar0BackendDownStaging
+        expr: absent(up{job="guitar0-backend", env="staging"}) or up{job="guitar0-backend", env="staging"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          env: staging
         annotations:
           summary: "Guitar0 backend недоступен"
           description: "Backend не отвечает более 2 минут."
@@ -22,14 +33,25 @@ groups:
           summary: "Высокий уровень 5xx ошибок"
           description: "5xx error rate: {{ $value | humanizePercentage }} (порог 5%)"
 
-      - alert: Guitar0High4xxErrorRate
-        expr: guitar0:http_error_rate_4xx:ratio5m > 0.20
+      - alert: Guitar0High4xxErrorRateProduction
+        expr: guitar0:http_error_rate_4xx:ratio5m{env="production"} > 0.20
         for: 10m
         labels:
           severity: warning
+          env: production
         annotations:
           summary: "Высокий уровень 4xx ошибок"
           description: "4xx error rate: {{ $value | humanizePercentage }} (порог 20%)"
+
+      - alert: Guitar0High4xxErrorRateStaging
+        expr: guitar0:http_error_rate_4xx:ratio5m{env="staging"} > 0.80
+        for: 10m
+        labels:
+          severity: warning
+          env: staging
+        annotations:
+          summary: "Высокий уровень 4xx ошибок"
+          description: "4xx error rate: {{ $value | humanizePercentage }} (порог 80%)"
 
       - alert: Guitar0HighLatency
         expr: guitar0:http_request_duration_p99:5m > 1
