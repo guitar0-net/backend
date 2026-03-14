@@ -73,7 +73,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(guitar0:http_requests:rate5m{container=~\"$container\"})",
+          "expr": "sum(guitar0:http_requests:rate5m{container=~\"$container\", env=~\"$env\"})",
           "legendFormat": "RPS",
           "refId": "A"
         }
@@ -141,7 +141,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_error_rate:ratio5m{container=~\"$container\"} * 100",
+          "expr": "guitar0:http_error_rate:ratio5m{container=~\"$container\", env=~\"$env\"} * 100",
           "legendFormat": "Error Rate",
           "refId": "A"
         }
@@ -209,7 +209,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_request_duration_p99:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_request_duration_p99:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P99",
           "refId": "A"
         }
@@ -276,7 +276,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(guitar0_backend_http_requests_in_progress{container=~\"$container\"})",
+          "expr": "sum(guitar0_backend_http_requests_in_progress{container=~\"$container\", env=~\"$env\"})",
           "legendFormat": "In Progress",
           "refId": "A"
         }
@@ -445,7 +445,7 @@
             "type": "loki",
             "uid": "${loki_datasource}"
           },
-          "expr": "{container=~\"$container\", level=~\"$level\"}",
+          "expr": "{container=~\"$container\", env=~\"$env\", level=~\"$level\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -574,7 +574,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(guitar0:http_requests_2xx:rate5m{container=~\"$container\"})",
+          "expr": "sum(guitar0:http_requests_2xx:rate5m{container=~\"$container\", env=~\"$env\"})",
           "legendFormat": "2xx",
           "refId": "A"
         },
@@ -583,7 +583,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(guitar0:http_requests_4xx:rate5m{container=~\"$container\"})",
+          "expr": "sum(guitar0:http_requests_4xx:rate5m{container=~\"$container\", env=~\"$env\"})",
           "legendFormat": "4xx",
           "refId": "B"
         },
@@ -592,7 +592,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(guitar0:http_requests_5xx:rate5m{container=~\"$container\"})",
+          "expr": "sum(guitar0:http_requests_5xx:rate5m{container=~\"$container\", env=~\"$env\"})",
           "legendFormat": "5xx",
           "refId": "C"
         }
@@ -665,7 +665,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "topk(10, sum(rate(guitar0_backend_http_requests_total{container=~\"$container\"}[$__rate_interval])) by (endpoint))",
+          "expr": "topk(10, sum(rate(guitar0_backend_http_requests_total{container=~\"$container\", env=~\"$env\"}[$__rate_interval])) by (endpoint))",
           "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
@@ -750,7 +750,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_request_duration_p50:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_request_duration_p50:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -759,7 +759,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_request_duration_p90:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_request_duration_p90:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P90",
           "refId": "B"
         },
@@ -768,7 +768,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_request_duration_p99:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_request_duration_p99:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -841,7 +841,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(guitar0_backend_http_request_duration_seconds_bucket{container=~\"$container\"}[$__rate_interval])) by (le, endpoint))",
+          "expr": "histogram_quantile(0.99, sum(rate(guitar0_backend_http_request_duration_seconds_bucket{container=~\"$container\", env=~\"$env\"}[$__rate_interval])) by (le, endpoint))",
           "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
@@ -966,7 +966,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_error_rate_4xx:ratio5m{container=~\"$container\"} * 100",
+          "expr": "guitar0:http_error_rate_4xx:ratio5m{container=~\"$container\", env=~\"$env\"} * 100",
           "legendFormat": "4xx Error Rate",
           "refId": "A"
         },
@@ -975,7 +975,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_error_rate_5xx:ratio5m{container=~\"$container\"} * 100",
+          "expr": "guitar0:http_error_rate_5xx:ratio5m{container=~\"$container\", env=~\"$env\"} * 100",
           "legendFormat": "5xx Error Rate",
           "refId": "B"
         }
@@ -1047,7 +1047,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(increase(guitar0_backend_http_exceptions_total{container=~\"$container\"}[$__rate_interval])) by (exception)",
+          "expr": "sum(increase(guitar0_backend_http_exceptions_total{container=~\"$container\", env=~\"$env\"}[$__rate_interval])) by (exception)",
           "legendFormat": "{{exception}}",
           "refId": "A"
         }
@@ -1132,7 +1132,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_response_size_p50:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_response_size_p50:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -1141,7 +1141,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_response_size_p90:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_response_size_p90:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P90",
           "refId": "B"
         },
@@ -1150,7 +1150,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_response_size_p99:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_response_size_p99:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -1223,7 +1223,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_request_size_p50:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_request_size_p50:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -1232,7 +1232,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_request_size_p90:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_request_size_p90:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P90",
           "refId": "B"
         },
@@ -1241,7 +1241,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "guitar0:http_request_size_p99:5m{container=~\"$container\"}",
+          "expr": "guitar0:http_request_size_p99:5m{container=~\"$container\", env=~\"$env\"}",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -1272,24 +1272,29 @@
       },
       {
         "allValue": ".+",
-        "current": {},
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${datasource}"
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
         },
-        "definition": "label_values(guitar0_backend_http_requests_total, env)",
         "hide": 0,
         "includeAll": true,
         "multi": false,
         "name": "env",
-        "options": [],
-        "query": {
-          "query": "label_values(guitar0_backend_http_requests_total, env)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 2,
-        "sort": 1,
-        "type": "query",
+        "options": [
+          {
+            "selected": false,
+            "text": "production",
+            "value": "production"
+          },
+          {
+            "selected": false,
+            "text": "staging",
+            "value": "staging"
+          }
+        ],
+        "query": "production,staging",
+        "type": "custom",
         "label": "Environment"
       },
       {
