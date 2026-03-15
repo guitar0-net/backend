@@ -56,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: infrastructure/docker/Dockerfile
+          file: Dockerfile
           platforms: linux/amd64
           pull: true
           push: true

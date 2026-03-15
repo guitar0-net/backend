@@ -4,11 +4,7 @@
 
 .PHONY: help install update lint test migrate run shell clean checkmigrations ci \
        license-add license-check loc \
-       docker-build docker-up docker-down docker-logs docker-shell docker-clean \
-       monitoring-up monitoring-down \
-       ansible-setup ansible-setup-prod ansible-deploy \
-       ansible-rollback ansible-rollback-prod ansible-backup ansible-backup-prod \
-       ansible-monitoring ansible-monitoring-prod
+       docker-build docker-up docker-down docker-logs docker-shell docker-clean
 
 # Variables
 SHELL := /bin/bash
@@ -77,11 +73,11 @@ loc: ## Count lines of code vs tests
 # Docker
 # =============================================================================
 
-DOCKER_IMAGE := kotlyar562/guitar0net
+DOCKER_IMAGE := kotlyar562/guitar0net-backend
 DOCKER_TAG := $(shell git describe --tags --always 2>/dev/null || echo "latest")
 
 docker-build: ## Build Docker image
-	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) -f infrastructure/docker/Dockerfile .
+	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) -f Dockerfile .
 
 docker-up: ## Start dev environment (docker compose)
 	docker network create guitar0-network 2>/dev/null || true
@@ -99,44 +95,4 @@ docker-shell: ## Shell into app container
 docker-clean: ## Remove containers, volumes, and images
 	docker compose down -v --rmi local
 
-monitoring-up: ## Start monitoring stack locally (Grafana at http://localhost:3000)
-	docker network create guitar0-network 2>/dev/null || true
-	docker compose -f infrastructure/observability/docker-compose.monitoring.yml up -d
-
-monitoring-down: ## Stop local monitoring stack
-	docker compose -f infrastructure/observability/docker-compose.monitoring.yml down
-
-# =============================================================================
-# Ansible (deployment)
-# =============================================================================
-
-ANSIBLE_DIR := infrastructure/ansible
-SSH_KEY ?= ~/.ssh/deploy_key
-ANSIBLE := cd $(ANSIBLE_DIR) && SSH_PRIVATE_KEY_FILE=$(SSH_KEY) ansible-playbook
-
-ansible-setup: ## Initial server setup (staging)
-	$(ANSIBLE) playbooks/setup.yml -i inventory/staging.yml
-
-ansible-setup-prod: ## Initial server setup (production)
-	$(ANSIBLE) playbooks/setup.yml -i inventory/production.yml
-
-ansible-deploy: ## Deploy to staging
-	$(ANSIBLE) playbooks/deploy.yml -i inventory/staging.yml
-
-ansible-rollback: ## Rollback staging
-	$(ANSIBLE) playbooks/rollback.yml -i inventory/staging.yml
-
-ansible-rollback-prod: ## Rollback production
-	$(ANSIBLE) playbooks/rollback.yml -i inventory/production.yml
-
-ansible-backup: ## Backup staging database
-	$(ANSIBLE) playbooks/backup.yml -i inventory/staging.yml
-
-ansible-backup-prod: ## Backup production database
-	$(ANSIBLE) playbooks/backup.yml -i inventory/production.yml
-
-ansible-monitoring: ## Deploy monitoring stack to staging
-	$(ANSIBLE) playbooks/monitoring.yml -i inventory/staging.yml
-
-ansible-monitoring-prod: ## Deploy monitoring stack to production
-	$(ANSIBLE) playbooks/monitoring.yml -i inventory/production.yml
+# Monitoring and deployment are managed in guitar0-net/infrastructure repo
