@@ -15,7 +15,7 @@ permissions:
   security-events: write
 
 env:
-  DOCKER_IMAGE: kotlyar562/guitar0net
+  DOCKER_IMAGE: kotlyar562/guitar0net-backend
 
 jobs:
   build:
@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.version }}
+      git_sha: ${{ steps.sha.outputs.short }}
 
     steps:
       - name: Checkout repository
@@ -107,24 +108,42 @@ jobs:
         if: steps.trivy.outcome == 'failure'
         run: exit 1
 
-  deploy-staging:
-    name: Deploy to Staging
+  dispatch-staging:
+    name: Trigger staging deploy
     if: github.ref == 'refs/heads/main'
     needs: [build, security-scan]
-    uses: ./.github/workflows/deploy-env.yml
-    with:
-      environment: staging
-      inventory: staging.yml
-      version: staging
-    secrets: inherit
+    runs-on: ubuntu-latest
 
-  deploy-production:
-    name: Deploy to Production
+    steps:
+      - name: Dispatch deploy to infrastructure repo
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.INFRA_DISPATCH_TOKEN }}
+          repository: guitar0-net/infrastructure
+          event-type: deploy-backend
+          client-payload: |
+            {
+              "environment": "staging",
+              "version": "${{ needs.build.outputs.version }}",
+              "git_sha": "${{ needs.build.outputs.git_sha }}"
+            }
+
+  dispatch-production:
+    name: Trigger production deploy
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [build, security-scan]
-    uses: ./.github/workflows/deploy-env.yml
-    with:
-      environment: production
-      inventory: production.yml
-      version: ${{ needs.build.outputs.version }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dispatch deploy to infrastructure repo
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.INFRA_DISPATCH_TOKEN }}
+          repository: guitar0-net/infrastructure
+          event-type: deploy-backend
+          client-payload: |
+            {
+              "environment": "production",
+              "version": "${{ needs.build.outputs.version }}",
+              "git_sha": "${{ needs.build.outputs.git_sha }}"
+            }
