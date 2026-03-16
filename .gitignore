@@ -43,9 +43,9 @@ staticfiles/
 .vault_pass
 
 # IDEs
-.vscode
-.idea
-.vs
+.vscode/
+.idea/
+.vs/
 
 # other
 .DS_Store
