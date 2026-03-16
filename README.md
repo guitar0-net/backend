@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 # Guitar0 backend
 
 [![CI](https://github.com/guitar0-net/server/actions/workflows/ci.yml/badge.svg)](https://github.com/guitar0-net/server/actions/workflows/ci.yml)
-![codecov](https://codecov.io/gh/guitar0-net/backend/graph/badge.svg?token=O0HFMUOVO6)
+[![codecov](https://codecov.io/gh/guitar0-net/backend/graph/badge.svg?token=O0HFMUOVO6)](https://codecov.io/gh/guitar0-net/backend)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://python.org)
 ![Django](https://img.shields.io/badge/django-6-blue)
 [![License](https://img.shields.io/badge/license-AGPL--3.0--or--later-green.svg)](./LICENSES/AGPL-3.0-or-later.txt)
