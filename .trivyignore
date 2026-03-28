@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Trivy vulnerability suppression file
+# No backport is planned. Accepted risk as per Debian Security Advisory policy.
+# See: https://security-tracker.debian.org/tracker/
+
+# glibc: Integer overflow in memalign leads to heap corruption
+CVE-2025-15281 exp:2026-10-01
+CVE-2026-0861 exp:2026-10-01
+CVE-2026-0915 exp:2026-10-01
+
+# glibc: Information disclosure via zero-valued network query
+CVE-2026-1703 exp:2026-10-01
+
+# glibc: wordexp with WRDE_REUSE and WRDE_APPEND may return uninitialized memory
+CVE-2026-2219 exp:2026-10-01
+
+# sqlite: Integer overflow in FTS5
+CVE-2025-7709 exp:2026-10-01
+
+# pygments: no fix available yet
+CVE-2026-4539 exp:2026-05-01
