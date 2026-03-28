@@ -156,6 +156,7 @@ show_missing = true
 [tool.bandit]
 exclude_dirs = ["tests", "migrations", ".venv"]
 
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "1.0.0"
@@ -164,6 +165,8 @@ version_files = ["pyproject.toml"]
 
 [tool.pdm.scripts]
 setup = "pdm install --group dev --group test --group lint"
+# CVE-2026-4539: pygments ReDoS in AdlLexer, Low severity, no fix available yet (exp: 2026-05-01)
+audit = {composite = ["pdm export --no-hashes -o /tmp/requirements.txt", "pip-audit -r /tmp/requirements.txt --ignore-vuln CVE-2026-4539"]}
 lint = "python scripts/lint.py"
 license-check = "reuse lint"
 license-add = """

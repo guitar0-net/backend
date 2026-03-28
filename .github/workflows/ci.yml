@@ -145,9 +145,7 @@ jobs:
         run: exit 1
 
       - name: pip-audit — dependency CVE scan
-        run: |
-          pdm export --no-hashes -o /tmp/requirements.txt
-          pdm run pip-audit -r /tmp/requirements.txt
+        run: pdm run audit
 
   docker-build:
     name: Docker Build

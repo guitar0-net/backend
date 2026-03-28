@@ -62,10 +62,10 @@ license-check: ## Check license headers
 	$(PDM) license-check
 
 loc: ## Count lines of code vs tests
-	@total=$$(find . -type f -name '*.py' ! -path '*/venv/*' ! -path '*/.venv/*' ! -path '*/migrations/*' | xargs wc -l | tail -n1 | awk '{print $$1}'); \
-	tests=$$(find tests -type f -name '*.py' | xargs wc -l | tail -n1 | awk '{print $$1}'); \
+	@code=$$(find . -type f -name '*.py' ! -name 'test_*.py' ! -path '*/venv/*' ! -path '*/.venv/*' ! -path '*/migrations/*' | xargs wc -l | tail -n1 | awk '{print $$1}'); \
+	tests=$$(find . -type f -name 'test_*.py' ! -path '*/venv/*' ! -path '*/.venv/*' ! -path '*/migrations/*' | xargs wc -l | tail -n1 | awk '{print $$1}'); \
 	if [ -z "$$tests" ]; then tests=0; fi; \
-	code=$$((total - tests)); \
+	total=$$((code + tests)); \
 	ratio=$$(python3 -c "print(round(($$tests / $$total * 100) if $$total else 0, 2))"); \
 	echo "Total Python lines: $$total (code: $$code, tests: $$tests, ratio: $$ratio%)"
 
