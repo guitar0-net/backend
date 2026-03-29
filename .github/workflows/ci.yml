@@ -103,7 +103,7 @@ jobs:
         run: pdm run pytest --maxfail=1 --cov --cov-branch --cov-report=xml --cov-append -m "integration"
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: guitar0-net/server
