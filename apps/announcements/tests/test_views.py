@@ -37,9 +37,9 @@ def test_announcements_list_returns_published(api_client: APIClient) -> None:
     response = api_client.get(reverse("announcements-list"))
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
-    assert response.data[0]["title"] == "Test Announcement"
-    assert response.data[0]["uuid"] == str(announcement.uuid)
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["title"] == "Test Announcement"
+    assert response.data["results"][0]["uuid"] == str(announcement.uuid)
 
 
 @pytest.mark.django_db
@@ -48,7 +48,7 @@ def test_announcements_list_returns_empty_when_none(api_client: APIClient) -> No
     response = api_client.get(reverse("announcements-list"))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == []
+    assert response.data["results"] == []
 
 
 @pytest.mark.django_db
@@ -65,8 +65,36 @@ def test_announcements_list_excludes_unpublished(api_client: APIClient) -> None:
     response = api_client.get(reverse("announcements-list"))
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
-    assert response.data[0]["title"] == "Published"
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["title"] == "Published"
+
+
+@pytest.mark.django_db
+def test_announcements_list_limit_offset_slicing(api_client: APIClient) -> None:
+    """GET /announcements/?limit=2&offset=1 returns correct slice."""
+    now = timezone.now()
+    AnnouncementFactory.create(title="First", published_at=now - timedelta(minutes=3))
+    AnnouncementFactory.create(title="Second", published_at=now - timedelta(minutes=2))
+    AnnouncementFactory.create(title="Third", published_at=now - timedelta(minutes=1))
+
+    response = api_client.get(reverse("announcements-list"), {"limit": 2, "offset": 1})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 3
+    assert len(response.data["results"]) == 2
+
+
+@pytest.mark.django_db
+def test_announcements_list_max_limit_cap(api_client: APIClient) -> None:
+    """GET /announcements/?limit=100 returns at most 50 items."""
+    now = timezone.now()
+    AnnouncementFactory.create_batch(60, published_at=now - timedelta(minutes=1))
+
+    response = api_client.get(reverse("announcements-list"), {"limit": 100})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 60
+    assert len(response.data["results"]) == 50
 
 
 # =============================================================================

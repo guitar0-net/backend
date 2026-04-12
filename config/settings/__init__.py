@@ -93,6 +93,7 @@ REST_FRAMEWORK = {
         "user": "150/minute",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "config.pagination.GuitarPagination",
 }
 
 SPECTACULAR_SETTINGS = {

@@ -34,7 +34,7 @@ def test_chords_list_and_retrieve_flow(
     list_response = client.get("/api/v1/chords/")
 
     assert list_response.status_code == status.HTTP_200_OK
-    assert any(c["id"] == chord.pk for c in list_response.json())
+    assert any(c["id"] == chord.pk for c in list_response.json()["results"])
 
     retrieve_response = client.get(f"/api/v1/chords/{chord.pk}/")
 
