@@ -33,10 +33,10 @@ def test_courses_list_returns_published_courses(api_client: APIClient) -> None:
     response = api_client.get(reverse("courses-list"))
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
-    assert response.data[0]["title"] == "Test Course"
-    assert response.data[0]["uuid"] == str(course.uuid)
-    assert response.data[0]["lessons_count"] == 0
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["title"] == "Test Course"
+    assert response.data["results"][0]["uuid"] == str(course.uuid)
+    assert response.data["results"][0]["lessons_count"] == 0
 
 
 @pytest.mark.django_db
@@ -45,7 +45,7 @@ def test_courses_list_returns_empty_when_no_courses(api_client: APIClient) -> No
     response = api_client.get(reverse("courses-list"))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == []
+    assert response.data["results"] == []
 
 
 @pytest.mark.django_db
@@ -57,8 +57,8 @@ def test_courses_list_excludes_unpublished(api_client: APIClient) -> None:
     response = api_client.get(reverse("courses-list"))
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
-    assert response.data[0]["title"] == "Published"
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["title"] == "Published"
 
 
 # =============================================================================
