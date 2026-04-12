@@ -24,6 +24,7 @@ def test_image_dimensions_are_set_on_save(image_scheme: ImageScheme) -> None:
     assert scheme.width is not None
     assert scheme.height > 0
     assert scheme.width > 0
+    assert scheme.image.name is not None
     assert scheme.image.name.startswith("lesson_schemes/")
 
 
