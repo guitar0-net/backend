@@ -8,12 +8,13 @@ from collections.abc import Sequence
 from typing import ClassVar
 
 from django.contrib import admin
+from markdownx.admin import MarkdownxModelAdmin  # type: ignore[import-untyped]
 
 from apps.announcements.models import Announcement
 
 
 @admin.register(Announcement)
-class AnnouncementAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+class AnnouncementAdmin(MarkdownxModelAdmin):  # type: ignore[misc]
     """Admin interface for the Announcement model."""
 
     list_display = (
