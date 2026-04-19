@@ -5,12 +5,13 @@
 """Admin settings for songs."""
 
 from django.contrib import admin
+from markdownx.admin import MarkdownxModelAdmin  # type: ignore[import-untyped]
 
 from apps.songs.models import Song
 
 
 @admin.register(Song)
-class SongAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+class SongAdmin(MarkdownxModelAdmin):  # type: ignore[misc]
     """Admin interface for the Song model."""
 
     filter_horizontal = ("chords", "schemes")
