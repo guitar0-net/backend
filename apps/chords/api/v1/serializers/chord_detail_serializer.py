@@ -26,4 +26,6 @@ class ChordDetailSerializer(serializers.ModelSerializer[Chord]):
             "start_fret",
             "has_barre",
             "positions",
+            "svg_horizontal",
+            "svg_vertical",
         )

@@ -18,4 +18,11 @@ class ChordsListSerializer(serializers.ModelSerializer[Chord]):
 
     class Meta:
         model = Chord
-        fields = ("id", "title", "musical_title", "positions")
+        fields = (
+            "id",
+            "title",
+            "musical_title",
+            "positions",
+            "svg_horizontal",
+            "svg_vertical",
+        )
