@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ### Courses API
-### Base URL: /api/v1/data/courses/
+### Base URL: /api/v1/courses/
 
-@baseUrl = http://localhost:8000/api/v1/data
+@baseUrl = http://localhost:8000/api/v1
 
 ### Get all published courses
 GET {{baseUrl}}/courses/ HTTP/1.1

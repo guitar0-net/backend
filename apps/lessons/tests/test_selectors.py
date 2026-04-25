@@ -6,7 +6,12 @@
 
 import pytest
 
-from apps.lessons.selectors import get_lesson_by_uuid, get_published_lessons
+from apps.courses.tests.factories import CourseFactory
+from apps.lessons.selectors import (
+    get_course_for_lesson,
+    get_lesson_by_uuid,
+    get_published_lessons,
+)
 from apps.lessons.tests.factories import LessonFactory
 
 
@@ -38,6 +43,45 @@ def test_get_lesson_by_uuid_returns_none_for_unpublished() -> None:
     lesson = LessonFactory.create(is_published=False)
 
     result = get_lesson_by_uuid(str(lesson.uuid))
+
+    assert result is None
+
+
+@pytest.mark.django_db
+def test_get_course_for_lesson_returns_course_when_lesson_belongs_to_it() -> None:
+    lesson = LessonFactory.create()
+    course = CourseFactory.create(lessons=[lesson])
+
+    result = get_course_for_lesson(lesson, str(course.uuid))
+
+    assert result == course
+
+
+@pytest.mark.django_db
+def test_get_course_for_lesson_returns_none_on_malformed_uuid() -> None:
+    lesson = LessonFactory.create()
+
+    result = get_course_for_lesson(lesson, "не-uuid-строка")
+
+    assert result is None
+
+
+@pytest.mark.django_db
+def test_get_course_for_lesson_returns_none_when_course_is_unpublished() -> None:
+    lesson = LessonFactory.create()
+    course = CourseFactory.create(lessons=[lesson], is_published=False)
+
+    result = get_course_for_lesson(lesson, str(course.uuid))
+
+    assert result is None
+
+
+@pytest.mark.django_db
+def test_get_course_for_lesson_returns_none_when_lesson_not_in_course() -> None:
+    lesson = LessonFactory.create()
+    other_course = CourseFactory.create()
+
+    result = get_course_for_lesson(lesson, str(other_course.uuid))
 
     assert result is None
 

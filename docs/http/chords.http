@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ### Chords API
-### Base URL: /api/v1/data/chords/
+### Base URL: /api/v1/chords/
 
-@baseUrl = http://localhost:8000/api/v1/data
+@baseUrl = http://localhost:8000/api/v1
 
 ### Get all chords
 GET {{baseUrl}}/chords/ HTTP/1.1

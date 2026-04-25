@@ -3,18 +3,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ### Lessons API
-### Base URL: /api/v1/data/lessons/
+### Base URL: /api/v1/lessons/
 
-@baseUrl = http://localhost:8000/api/v1/data
+@baseUrl = http://localhost:8000/api/v1
 
 ### Get all published lessons
 GET {{baseUrl}}/lessons/ HTTP/1.1
 
 ### Get lesson by UUID
-# Replace with actual UUID from the list response
-@lessonUuid = 00000000-0000-0000-0000-000000000000
+# Replace with actual UUIDs from the list response
+@lessonUuid = 19e9abaa-f851-4db4-9380-7a307553dec1
 
 GET {{baseUrl}}/lessons/{{lessonUuid}}/ HTTP/1.1
 
+### Get lesson with course context (breadcrumbs)
+# course param is optional — returns course: {uuid, title} or course: null
+@courseUuid = ab704909-8661-4f1b-8d90-0ee430323c4d
+
+GET {{baseUrl}}/lessons/{{lessonUuid}}/?course={{courseUuid}} HTTP/1.1
+
 ### Get non-existent lesson (expects 404)
-GET {{baseUrl}}/lessons/00000000-0000-0000-0000-000000000000/ HTTP/1.1
+GET {{baseUrl}}/lessons/00000000-0000-0000-0000-111111111111/ HTTP/1.1

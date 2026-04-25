@@ -11,6 +11,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.courses.tests.factories import CourseFactory
 from apps.lessons.tests.factories import LessonFactory
 
 
@@ -100,3 +101,66 @@ def test_lesson_detail_returns_404_for_unpublished(api_client: APIClient) -> Non
     response = api_client.get(reverse("lesson-detail", kwargs={"uuid": lesson.uuid}))
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_lesson_detail_course_is_null_when_course_is_unpublished(
+    api_client: APIClient,
+) -> None:
+    lesson = LessonFactory.create()
+    course = CourseFactory.create(lessons=[lesson], is_published=False)
+
+    url = reverse("lesson-detail", kwargs={"uuid": lesson.uuid})
+    response = api_client.get(url, {"course": str(course.uuid)})
+
+    assert response.data["course"] is None
+
+
+@pytest.mark.django_db
+def test_lesson_detail_course_is_null_when_course_param_is_malformed(
+    api_client: APIClient,
+) -> None:
+    lesson = LessonFactory.create()
+
+    url = reverse("lesson-detail", kwargs={"uuid": lesson.uuid})
+    response = api_client.get(url, {"course": "не-uuid"})
+
+    assert response.data["course"] is None
+
+
+@pytest.mark.django_db
+def test_lesson_detail_course_is_null_when_course_uuid_not_in_lesson(
+    api_client: APIClient,
+) -> None:
+    lesson = LessonFactory.create()
+    unrelated_course = CourseFactory.create()
+
+    url = reverse("lesson-detail", kwargs={"uuid": lesson.uuid})
+    response = api_client.get(url, {"course": str(unrelated_course.uuid)})
+
+    assert response.data["course"] is None
+
+
+@pytest.mark.django_db
+def test_lesson_detail_course_is_null_when_no_course_param(
+    api_client: APIClient,
+) -> None:
+    lesson = LessonFactory.create()
+
+    response = api_client.get(reverse("lesson-detail", kwargs={"uuid": lesson.uuid}))
+
+    assert response.data["course"] is None
+
+
+@pytest.mark.django_db
+def test_lesson_detail_course_contains_uuid_and_title_when_valid_course_param(
+    api_client: APIClient,
+) -> None:
+    lesson = LessonFactory.create()
+    course = CourseFactory.create(title="Джаз для гитаристов", lessons=[lesson])
+
+    url = reverse("lesson-detail", kwargs={"uuid": lesson.uuid})
+    response = api_client.get(url, {"course": str(course.uuid)})
+
+    expected = {"uuid": str(course.uuid), "title": "Джаз для гитаристов"}
+    assert response.data["course"] == expected

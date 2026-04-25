@@ -4,17 +4,16 @@
 
 """Selectors for the lessons app."""
 
+import uuid as uuid_module
+
 from django.db.models import Prefetch, QuerySet
 
+from apps.courses.models import Course
 from apps.lessons.models import Lesson
 
 
 def get_published_lessons() -> QuerySet[Lesson]:
-    """Get a QuerySet of all published Lesson objects.
-
-    Returns:
-        QuerySet[Lesson]: QuerySet of all published lessons
-    """
+    """Return a QuerySet of all published lessons."""
     return (
         Lesson.objects
         .filter(is_published=True)
@@ -23,12 +22,17 @@ def get_published_lessons() -> QuerySet[Lesson]:
     )
 
 
-def get_lesson_by_uuid(uuid: str) -> Lesson | None:
-    """Get a single published Lesson by UUID with related data.
+def get_course_for_lesson(lesson: Lesson, course_uuid: str) -> Course | None:
+    """Return a published Course the given lesson belongs to, or None."""
+    try:
+        parsed = uuid_module.UUID(course_uuid)
+    except ValueError:
+        return None
+    return Course.objects.filter(lessons=lesson, uuid=parsed, is_published=True).first()
 
-    Returns:
-        Lesson or None if not found.
-    """
+
+def get_lesson_by_uuid(uuid: str) -> Lesson | None:
+    """Return a published Lesson by UUID with related data, or None."""
     return (
         Lesson.objects
         .filter(uuid=uuid, is_published=True)
