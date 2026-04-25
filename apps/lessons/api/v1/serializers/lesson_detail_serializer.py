@@ -18,6 +18,14 @@ class LessonDetailSerializer(serializers.ModelSerializer[Lesson]):
 
     songs = SongDetailSerializer(many=True, read_only=True)
     addition_lessons = LessonsListSerializer(many=True, read_only=True)
+    course = serializers.SerializerMethodField()
+
+    def get_course(self, _obj: Lesson) -> dict[str, str] | None:
+        """Return course context for breadcrumb rendering, or None."""
+        course = self.context.get("course")
+        if course is None:
+            return None
+        return {"uuid": str(course.uuid), "title": course.title}
 
     class Meta:
         model = Lesson
@@ -29,4 +37,5 @@ class LessonDetailSerializer(serializers.ModelSerializer[Lesson]):
             "duration",
             "songs",
             "addition_lessons",
+            "course",
         )
