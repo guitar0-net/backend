@@ -10,9 +10,15 @@ from django.db.models import QuerySet
 from django.http import Http404
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.lessons.models import Lesson
-from apps.lessons.selectors import get_lesson_by_uuid, get_published_lessons
+from apps.lessons.selectors import (
+    get_course_for_lesson,
+    get_lesson_by_uuid,
+    get_published_lessons,
+)
 
 from .serializers.lesson_detail_serializer import LessonDetailSerializer
 from .serializers.lessons_list_serializer import LessonsListSerializer
@@ -47,3 +53,12 @@ class LessonDetailView(RetrieveAPIView[Lesson]):
             raise Http404
         logger.debug("Fetched lesson: uuid=%s, title=%s", uuid, lesson.title)
         return lesson
+
+    def retrieve(self, request: Request, *args: object, **kwargs: object) -> Response:
+        """Return lesson detail, injecting optional course context for breadcrumbs."""
+        lesson = self.get_object()
+        course_uuid = request.query_params.get("course")
+        course = get_course_for_lesson(lesson, course_uuid) if course_uuid else None
+        context = {**self.get_serializer_context(), "course": course}
+        serializer = self.get_serializer(lesson, context=context)
+        return Response(serializer.data)
