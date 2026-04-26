@@ -78,7 +78,7 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
     ml = 15  # left margin — T marker
     mt = 22  # top margin  — roman numeral labels
     mr = 22  # right margin — open/muted markers
-    mb = 5  # bottom margin
+    mb = 6  # bottom margin
 
     gw = _FRETS * fret_w
     gh = (_STRINGS - 1) * string_h
@@ -104,7 +104,7 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
         fx = ml + fi * fret_w
         nut_sw = 4 if (fi == _FRETS and chord.start_fret == 1) else 1
         elements.append(
-            f'<line x1="{fx}" y1="{mt - 7}" x2="{fx}" y2="{gb}" '
+            f'<line x1="{fx}" y1="{mt - 7}" x2="{fx}" y2="{gb + 0.3}" '
             f'stroke="currentColor" stroke-width="{nut_sw}"/>'
         )
 
@@ -120,8 +120,8 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
     # Tonic marker on the LEFT (away from open/muted markers on the right)
     tonic_sy = mt + (_STRINGS - _tonic_string(chord.title)) * string_h
     elements.append(
-        f'<text x="{ml - 5}" y="{tonic_sy + 4}" text-anchor="end" '
-        f'font-size="9" font-weight="bold" fill="currentColor">T</text>'
+        f'<text x="{ml - 5}" y="{tonic_sy + 3}" text-anchor="end" '
+        f'font-size="7" font-weight="bold" fill="currentColor">T</text>'
     )
 
     pos_map: dict[int, ChordPosition] = {p.string_number: p for p in positions}
@@ -133,12 +133,12 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
             continue
         if pos.fret == -1:
             elements.append(
-                f'<text x="{gr + 5}" y="{sy + 4}" text-anchor="start" '
+                f'<text x="{gr + 5}" y="{sy + 3}" text-anchor="start" '
                 f'font-size="11" fill="currentColor">×</text>'
             )
         elif pos.fret == 0:
             elements.append(
-                f'<text x="{gr + 5}" y="{sy + 4}" text-anchor="start" '
+                f'<text x="{gr + 5}" y="{sy + 3}" text-anchor="start" '
                 f'font-size="11" fill="currentColor">○</text>'
             )
         else:
