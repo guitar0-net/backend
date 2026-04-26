@@ -5,6 +5,7 @@
 import pytest
 from django.contrib.admin import AdminSite, site
 from django.core.exceptions import PermissionDenied
+from django.forms import ModelForm, modelform_factory
 from django.http import HttpResponse
 from django.test import RequestFactory
 from django.urls import reverse
@@ -12,6 +13,7 @@ from django.urls import reverse
 from apps.accounts.tests.factories.user import UserFactory
 from apps.chords.admin import ChordAdmin, ChordPositionInline
 from apps.chords.models import Chord, ChordPosition
+from apps.chords.tests.factories import FullChordFactory
 
 
 @pytest.fixture
@@ -71,3 +73,73 @@ def test_chord_admin_inline_in_list_view_fail(
     request.user = user
     with pytest.raises(PermissionDenied):
         chord_admin.changelist_view(request)
+
+
+def _make_bound_chord_form(chord: Chord) -> ModelForm:  # type: ignore[type-arg]
+    """Return a bound, validated ModelForm for chord with save_m2m attached."""
+    ChordFormClass = modelform_factory(Chord, fields="__all__")  # noqa: N806
+    data = {
+        "title": chord.title,
+        "musical_title": chord.musical_title,
+        "order_in_note": chord.order_in_note,
+        "start_fret": chord.start_fret,
+        "has_barre": chord.has_barre,
+        "svg_horizontal": chord.svg_horizontal,
+        "svg_vertical": chord.svg_vertical,
+    }
+    form = ChordFormClass(data=data, instance=chord)
+    form.is_valid()
+    form.save(commit=False)
+    return form
+
+
+@pytest.mark.django_db
+def test_chord_admin_save_related_populates_svg_horizontal_on_update(
+    chord_admin: ChordAdmin,
+) -> None:
+    chord = FullChordFactory.create()
+    form = _make_bound_chord_form(chord)
+    request = RequestFactory().post("/")
+    request.user = UserFactory.create(is_superuser=True)
+    chord_admin.save_related(request, form, [], change=True)
+    chord.refresh_from_db()
+    assert chord.svg_horizontal
+
+
+@pytest.mark.django_db
+def test_chord_admin_save_related_populates_svg_vertical_on_update(
+    chord_admin: ChordAdmin,
+) -> None:
+    chord = FullChordFactory.create()
+    form = _make_bound_chord_form(chord)
+    request = RequestFactory().post("/")
+    request.user = UserFactory.create(is_superuser=True)
+    chord_admin.save_related(request, form, [], change=True)
+    chord.refresh_from_db()
+    assert chord.svg_vertical
+
+
+@pytest.mark.django_db
+def test_chord_admin_save_related_populates_svg_horizontal_on_create(
+    chord_admin: ChordAdmin,
+) -> None:
+    chord = FullChordFactory.create()
+    form = _make_bound_chord_form(chord)
+    request = RequestFactory().post("/")
+    request.user = UserFactory.create(is_superuser=True)
+    chord_admin.save_related(request, form, [], change=False)
+    chord.refresh_from_db()
+    assert chord.svg_horizontal
+
+
+@pytest.mark.django_db
+def test_chord_admin_save_related_populates_svg_vertical_on_create(
+    chord_admin: ChordAdmin,
+) -> None:
+    chord = FullChordFactory.create()
+    form = _make_bound_chord_form(chord)
+    request = RequestFactory().post("/")
+    request.user = UserFactory.create(is_superuser=True)
+    chord_admin.save_related(request, form, [], change=False)
+    chord.refresh_from_db()
+    assert chord.svg_vertical
