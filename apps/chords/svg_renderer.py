@@ -136,7 +136,7 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
                 f'<text x="{gr + 5}" y="{sy + 3}" text-anchor="start" '
                 f'font-size="11" fill="currentColor">×</text>'
             )
-        elif pos.fret == 0:
+        elif pos.fret == 0 and not chord.has_barre:
             elements.append(
                 f'<text x="{gr + 5}" y="{sy + 3}" text-anchor="start" '
                 f'font-size="11" fill="currentColor">○</text>'
@@ -181,23 +181,27 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
 # Strings are vertical lines; frets are horizontal lines.
 
 
-def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # noqa: PLR0914
-    string_w = 15  # px between string lines
-    fret_h = 40  # px per fret row
-    circle_r = 7
+def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # noqa: PLR0914, PLR0915
+    string_w = 12  # px between string lines (mirrors horizontal string_h)
+    fret_h = 45  # px per fret row (mirrors horizontal fret_w)
+    circle_r = 5
 
-    # String 6 (thickest) at x = str_start; string 1 at x = str_start + 5*string_w
-    str_start = 15  # x of string 6
+    ml = 25  # left margin — roman numeral labels (mirrors horizontal mt)
+    mt = 19  # top margin — open/muted markers (mirrors horizontal mr)
+    mr = 6  # right margin (mirrors horizontal mb)
+    mb = 15  # bottom margin — T marker (mirrors horizontal ml)
 
-    mt = 40  # top margin — nut y; space above for open/muted markers
-    mb = 15  # bottom margin — T marker
-    fl_x1 = str_start - 5  # fret line left edge (extends past string 6)
-    fl_x2 = str_start + (_STRINGS - 1) * string_w  # fret line right edge = string 1
-
+    gw = (_STRINGS - 1) * string_w
     gh = _FRETS * fret_h
-    gb = mt + gh  # grid bottom (last fret line y)
 
-    width = fl_x2 + 5  # 5px right margin
+    str_start = ml  # x of string 6 (leftmost)
+    fl_x1 = (
+        str_start - 7
+    )  # fret lines extend 7 px left of string 6 (mirrors horizontal's mt-7)
+    fl_x2 = str_start + gw  # fret lines end at string 1
+    gb = mt + gh
+
+    width = ml + gw + mr
     height = mt + gh + mb
 
     overhang = 0 if chord.start_fret == 1 else 3
@@ -216,7 +220,7 @@ def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # no
         fy = mt + fi * fret_h
         nut_sw = 4 if (fi == 0 and chord.start_fret == 1) else 1
         elements.append(
-            f'<line x1="{fl_x1}" y1="{fy}" x2="{fl_x2}" y2="{fy}" '
+            f'<line x1="{fl_x1}" y1="{fy}" x2="{fl_x2 + 0.3}" y2="{fy}" '
             f'stroke="currentColor" stroke-width="{nut_sw}"/>'
         )
 
@@ -239,12 +243,12 @@ def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # no
             continue
         if pos.fret == -1:
             elements.append(
-                f'<text x="{sx}" y="{mt - 8}" text-anchor="middle" '
+                f'<text x="{sx}" y="{mt - 5}" text-anchor="middle" '
                 f'font-size="11" fill="currentColor">×</text>'
             )
-        elif pos.fret == 0:
+        elif pos.fret == 0 and not chord.has_barre:
             elements.append(
-                f'<text x="{sx}" y="{mt - 8}" text-anchor="middle" '
+                f'<text x="{sx}" y="{mt - 5}" text-anchor="middle" '
                 f'font-size="11" fill="currentColor">○</text>'
             )
         else:
@@ -252,10 +256,9 @@ def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # no
             if 1 <= fi <= _FRETS:
                 cy = mt + (fi - 1) * fret_h + fret_h // 2
                 if chord.has_barre and pos.finger == 1:
-                    bx = str_start + (_STRINGS - 1) * string_w // 2
-                    brx = (_STRINGS - 1) * string_w // 2 + circle_r // 2
+                    bx = str_start + gw // 2
                     elements.append(
-                        f'<ellipse cx="{bx}" cy="{cy}" rx="{brx}" '
+                        f'<ellipse cx="{bx}" cy="{cy}" rx="{gw // 2 + circle_r}" '
                         f'ry="{_BARRE_THICKNESS}" fill="{_FINGER_FILL[1]}"'
                         f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
                     )
@@ -280,7 +283,7 @@ def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # no
     tonic_sx = str_start + (_STRINGS - _tonic_string(chord.title)) * string_w
     elements.append(
         f'<text x="{tonic_sx}" y="{gb + 11}" text-anchor="middle" '
-        f'font-size="9" font-weight="bold" fill="currentColor">T</text>'
+        f'font-size="7" font-weight="bold" fill="currentColor">T</text>'
     )
 
     label = _aria_label(chord, positions)
