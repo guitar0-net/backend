@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -192,6 +192,100 @@ def test_replace_positions_replaces_existing(chord: Chord) -> None:
         assert pos.string_number == data["string_number"]
         assert pos.fret == data["fret"]
         assert pos.finger == data["finger"]
+
+
+@pytest.mark.django_db
+def test_create_chord_sets_svg_horizontal() -> None:
+    chord_fields: ChordCreateDict = {
+        "title": "G",
+        "musical_title": "G major",
+        "order_in_note": 1,
+        "start_fret": 1,
+        "has_barre": False,
+    }
+    positions: list[ChordPositionCreateDict] = [
+        {"string_number": 1, "fret": 2, "finger": 1},
+        {"string_number": 2, "fret": 3, "finger": 2},
+        {"string_number": 3, "fret": 0, "finger": 0},
+        {"string_number": 4, "fret": 0, "finger": 0},
+        {"string_number": 5, "fret": 2, "finger": 3},
+        {"string_number": 6, "fret": 3, "finger": 4},
+    ]
+
+    chord = ChordService.create_chord(positions=positions, chord_fields=chord_fields)
+
+    assert chord.svg_horizontal
+
+
+@pytest.mark.django_db
+def test_create_chord_sets_svg_vertical() -> None:
+    chord_fields: ChordCreateDict = {
+        "title": "G",
+        "musical_title": "G major",
+        "order_in_note": 1,
+        "start_fret": 1,
+        "has_barre": False,
+    }
+    positions: list[ChordPositionCreateDict] = [
+        {"string_number": 1, "fret": 2, "finger": 1},
+        {"string_number": 2, "fret": 3, "finger": 2},
+        {"string_number": 3, "fret": 0, "finger": 0},
+        {"string_number": 4, "fret": 0, "finger": 0},
+        {"string_number": 5, "fret": 2, "finger": 3},
+        {"string_number": 6, "fret": 3, "finger": 4},
+    ]
+
+    chord = ChordService.create_chord(positions=positions, chord_fields=chord_fields)
+
+    assert chord.svg_vertical
+
+
+@pytest.mark.django_db
+def test_update_chord_sets_svg_horizontal(
+    chord_factory: type[FullChordFactory],
+) -> None:
+    chord = chord_factory.create(
+        title="Am",
+        musical_title="A minor",
+        order_in_note=1,
+        start_fret=1,
+        has_barre=False,
+    )
+    new_positions = [
+        {"string_number": 1, "fret": 1, "finger": 1},
+        {"string_number": 2, "fret": 2, "finger": 2},
+        {"string_number": 3, "fret": 2, "finger": 3},
+        {"string_number": 4, "fret": 0, "finger": 0},
+        {"string_number": 5, "fret": -1, "finger": 0},
+        {"string_number": 6, "fret": -1, "finger": 0},
+    ]
+
+    updated = ChordService.update_chord(chord=chord, data={"positions": new_positions})
+
+    assert updated.svg_horizontal
+
+
+@pytest.mark.django_db
+def test_update_chord_sets_svg_vertical(chord_factory: type[FullChordFactory]) -> None:
+    chord = chord_factory.create(
+        title="Am",
+        musical_title="A minor",
+        order_in_note=1,
+        start_fret=1,
+        has_barre=False,
+    )
+    new_positions = [
+        {"string_number": 1, "fret": 1, "finger": 1},
+        {"string_number": 2, "fret": 2, "finger": 2},
+        {"string_number": 3, "fret": 2, "finger": 3},
+        {"string_number": 4, "fret": 0, "finger": 0},
+        {"string_number": 5, "fret": -1, "finger": 0},
+        {"string_number": 6, "fret": -1, "finger": 0},
+    ]
+
+    updated = ChordService.update_chord(chord=chord, data={"positions": new_positions})
+
+    assert updated.svg_vertical
 
 
 @pytest.mark.django_db

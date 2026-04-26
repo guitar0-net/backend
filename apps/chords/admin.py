@@ -10,8 +10,11 @@ from typing import Any, ClassVar
 
 from django.contrib import admin
 from django.contrib.admin.options import InlineModelAdmin
+from django.forms import ModelForm
+from django.http import HttpRequest
 
 from apps.chords.models import Chord, ChordPosition
+from apps.chords.services import ChordService
 
 
 class ChordPositionInline(admin.TabularInline):  # type: ignore[type-arg]
@@ -31,3 +34,14 @@ class ChordAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     search_fields = ("title", "musical_title")
     ordering = ("order_in_note",)
     inlines: ClassVar[list[type[InlineModelAdmin[Any, Any]]]] = [ChordPositionInline]
+
+    def save_related(
+        self,
+        request: HttpRequest,
+        form: ModelForm[Chord],
+        formsets: Any,  # noqa: ANN401
+        change: bool,
+    ) -> None:
+        """Regenerate SVG fields after all inlines are saved."""
+        super().save_related(request, form, formsets, change)
+        ChordService.regenerate_svg(chord=form.instance)

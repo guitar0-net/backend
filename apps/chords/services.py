@@ -10,6 +10,8 @@ from django.db import transaction
 
 from .constants import MAX_STRING_NUMBER
 from .models import Chord, ChordPosition
+from .selectors import get_all_chords
+from .svg_renderer import render_chord_svg
 
 
 class ChordPositionCreateDict(TypedDict):
@@ -65,6 +67,8 @@ class ChordService:
 
         chord = Chord.objects.create(**chord_fields)
         ChordService._replace_positions(chord, positions)
+        chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
+        chord.save(update_fields=["svg_horizontal", "svg_vertical"])
         return chord
 
     @staticmethod
@@ -94,7 +98,24 @@ class ChordService:
         if positions_data is not None:
             ChordService._replace_positions(chord, positions_data)
 
+        chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
+        chord.save(update_fields=["svg_horizontal", "svg_vertical"])
         return chord
+
+    @staticmethod
+    def regenerate_svg(*, chord: Chord) -> None:
+        """Regenerate SVG fields for an existing chord."""
+        chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
+        chord.save(update_fields=["svg_horizontal", "svg_vertical"])
+
+    @staticmethod
+    def bulk_regenerate_svgs() -> int:
+        """Regenerate SVG fields for all chords. Returns count of updated chords."""
+        chords = list(get_all_chords())
+        for chord in chords:
+            chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
+        Chord.objects.bulk_update(chords, ["svg_horizontal", "svg_vertical"])
+        return len(chords)
 
     @staticmethod
     def delete_chord(*, chord: Chord) -> None:

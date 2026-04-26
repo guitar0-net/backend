@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -35,6 +35,8 @@ class Chord(models.Model):
     order_in_note = models.PositiveSmallIntegerField("Порядок отображения", default=1)
     start_fret = models.PositiveSmallIntegerField("С какого лада начинается", default=1)
     has_barre = models.BooleanField("Есть барре?", default=False)
+    svg_horizontal = models.TextField("SVG горизонтальный", blank=True, default="")
+    svg_vertical = models.TextField("SVG вертикальный", blank=True, default="")
 
     def __str__(self) -> str:
         return self.title if not self.has_barre else f"{self.title} bare"

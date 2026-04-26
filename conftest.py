@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -7,10 +7,18 @@
 import pytest
 from django.contrib.admin import AdminSite, site
 from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
 from rest_framework.test import APIRequestFactory
 
 from apps.accounts.models.user import User
 from apps.accounts.tests.factories.user import UserFactory
+
+
+@pytest.fixture(autouse=True)
+def clear_cache() -> None:
+    """Clear django cache to avoid throttle error."""
+    cache.clear()
+
 
 ########################
 # Global Django instances
