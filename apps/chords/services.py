@@ -10,6 +10,7 @@ from django.db import transaction
 
 from .constants import MAX_STRING_NUMBER
 from .models import Chord, ChordPosition
+from .svg_renderer import render_chord_svg
 
 
 class ChordPositionCreateDict(TypedDict):
@@ -65,6 +66,8 @@ class ChordService:
 
         chord = Chord.objects.create(**chord_fields)
         ChordService._replace_positions(chord, positions)
+        chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
+        chord.save(update_fields=["svg_horizontal", "svg_vertical"])
         return chord
 
     @staticmethod
@@ -94,6 +97,8 @@ class ChordService:
         if positions_data is not None:
             ChordService._replace_positions(chord, positions_data)
 
+        chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
+        chord.save(update_fields=["svg_horizontal", "svg_vertical"])
         return chord
 
     @staticmethod
