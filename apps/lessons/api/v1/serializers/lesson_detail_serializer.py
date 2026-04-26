@@ -20,6 +20,7 @@ _COURSE_SCHEMA = {
         "uuid": {"type": "string", "format": "uuid"},
         "title": {"type": "string"},
     },
+    "required": ["uuid", "title"],
 }
 
 

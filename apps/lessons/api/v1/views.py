@@ -8,6 +8,7 @@ import logging
 
 from django.db.models import QuerySet
 from django.http import Http404
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -38,6 +39,18 @@ class LessonsListView(ListAPIView[Lesson]):
         return get_published_lessons()
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="course",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description="UUID of the parent course. When provided, populates the "
+            "`course` field in the response for breadcrumb rendering.",
+            required=False,
+        )
+    ]
+)
 class LessonDetailView(RetrieveAPIView[Lesson]):
     """Retrieve a single published lesson by UUID."""
 
