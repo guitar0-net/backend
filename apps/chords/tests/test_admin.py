@@ -94,52 +94,16 @@ def _make_bound_chord_form(chord: Chord) -> ModelForm:  # type: ignore[type-arg]
 
 
 @pytest.mark.django_db
-def test_chord_admin_save_related_populates_svg_horizontal_on_update(
+@pytest.mark.parametrize("change", [True, False])
+def test_chord_admin_save_related_populates_svg(
     chord_admin: ChordAdmin,
+    change: bool,
 ) -> None:
     chord = FullChordFactory.create()
     form = _make_bound_chord_form(chord)
     request = RequestFactory().post("/")
     request.user = UserFactory.create(is_superuser=True)
-    chord_admin.save_related(request, form, [], change=True)
+    chord_admin.save_related(request, form, [], change=change)
     chord.refresh_from_db()
     assert chord.svg_horizontal
-
-
-@pytest.mark.django_db
-def test_chord_admin_save_related_populates_svg_vertical_on_update(
-    chord_admin: ChordAdmin,
-) -> None:
-    chord = FullChordFactory.create()
-    form = _make_bound_chord_form(chord)
-    request = RequestFactory().post("/")
-    request.user = UserFactory.create(is_superuser=True)
-    chord_admin.save_related(request, form, [], change=True)
-    chord.refresh_from_db()
-    assert chord.svg_vertical
-
-
-@pytest.mark.django_db
-def test_chord_admin_save_related_populates_svg_horizontal_on_create(
-    chord_admin: ChordAdmin,
-) -> None:
-    chord = FullChordFactory.create()
-    form = _make_bound_chord_form(chord)
-    request = RequestFactory().post("/")
-    request.user = UserFactory.create(is_superuser=True)
-    chord_admin.save_related(request, form, [], change=False)
-    chord.refresh_from_db()
-    assert chord.svg_horizontal
-
-
-@pytest.mark.django_db
-def test_chord_admin_save_related_populates_svg_vertical_on_create(
-    chord_admin: ChordAdmin,
-) -> None:
-    chord = FullChordFactory.create()
-    form = _make_bound_chord_form(chord)
-    request = RequestFactory().post("/")
-    request.user = UserFactory.create(is_superuser=True)
-    chord_admin.save_related(request, form, [], change=False)
-    chord.refresh_from_db()
     assert chord.svg_vertical

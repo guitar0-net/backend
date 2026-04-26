@@ -28,22 +28,4 @@ def test_generate_chord_svgs_populates_svg_fields(
 
     chord.refresh_from_db()
     assert chord.svg_horizontal
-
-
-@pytest.mark.django_db
-def test_generate_chord_svgs_populates_svg_vertical(
-    chord_factory: type[FullChordFactory],
-) -> None:
-    chord = chord_factory.create(
-        title="Em",
-        musical_title="E minor",
-        order_in_note=1,
-        start_fret=1,
-        has_barre=False,
-    )
-    Chord.objects.filter(pk=chord.pk).update(svg_horizontal="", svg_vertical="")
-
-    call_command("generate_chord_svgs")
-
-    chord.refresh_from_db()
     assert chord.svg_vertical

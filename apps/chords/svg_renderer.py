@@ -4,6 +4,8 @@
 
 """SVG renderer for chord diagrams."""
 
+import html
+
 from apps.chords.models import Chord, ChordPosition
 
 _STRINGS = 6
@@ -44,7 +46,7 @@ def _tonic_string(title: str) -> int:
 
 
 def _aria_label(chord: Chord, positions: list[ChordPosition]) -> str:
-    parts = [chord.title]
+    parts = [html.escape(chord.title)]
     if chord.has_barre:
         barre_pos = next((p for p in positions if p.finger == 1 and p.fret > 0), None)
         if barre_pos:

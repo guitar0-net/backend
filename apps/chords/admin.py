@@ -14,7 +14,7 @@ from django.forms import ModelForm
 from django.http import HttpRequest
 
 from apps.chords.models import Chord, ChordPosition
-from apps.chords.svg_renderer import render_chord_svg
+from apps.chords.services import ChordService
 
 
 class ChordPositionInline(admin.TabularInline):  # type: ignore[type-arg]
@@ -44,6 +44,4 @@ class ChordAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     ) -> None:
         """Regenerate SVG fields after all inlines are saved."""
         super().save_related(request, form, formsets, change)
-        chord: Chord = form.instance
-        chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
-        chord.save(update_fields=["svg_horizontal", "svg_vertical"])
+        ChordService.regenerate_svg(chord=form.instance)

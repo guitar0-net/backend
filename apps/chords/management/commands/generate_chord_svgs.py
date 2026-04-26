@@ -6,8 +6,7 @@
 
 from django.core.management.base import BaseCommand
 
-from apps.chords.models import Chord
-from apps.chords.svg_renderer import render_chord_svg
+from apps.chords.services import ChordService
 
 
 class Command(BaseCommand):
@@ -17,10 +16,5 @@ class Command(BaseCommand):
 
     def handle(self, *args: object, **options: object) -> None:
         """Iterate all chords and regenerate their SVG fields."""
-        chords = Chord.objects.prefetch_related("positions").all()
-        updated = 0
-        for chord in chords:
-            chord.svg_horizontal, chord.svg_vertical = render_chord_svg(chord)
-            updated += 1
-        Chord.objects.bulk_update(chords, ["svg_horizontal", "svg_vertical"])
+        updated = ChordService.bulk_regenerate_svgs()
         self.stdout.write(self.style.SUCCESS(f"Updated {updated} chord(s)."))
