@@ -20,5 +20,5 @@ CVE-2026-2219 exp:2026-10-01
 # sqlite: Integer overflow in FTS5
 CVE-2025-7709 exp:2026-10-01
 
-# pygments: no fix available yet
-CVE-2026-4539 exp:2026-05-01
+# pip: no fix available yet
+CVE-2026-6357 exp:2026-07-01
