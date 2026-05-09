@@ -165,8 +165,13 @@ version_files = ["pyproject.toml"]
 
 [tool.pdm.scripts]
 setup = "pdm install --group dev --group test --group lint"
-# CVE-2026-4539: pygments ReDoS in AdlLexer, Low severity, no fix available yet (exp: 2026-05-01)
-audit = {composite = ["pdm export --no-hashes -o /tmp/requirements.txt", "pip-audit -r /tmp/requirements.txt --ignore-vuln CVE-2026-4539"]}
+# Ignored CVEs
+# CVE-2026-3219: pip, no fix available
+# CVE-2026-6357: pip 26.0.1, fix in pip 26.1 (managed by PDM internally, not our dependency)
+audit = {composite = [
+    "pdm export --no-hashes -o /tmp/requirements.txt",
+    "pip-audit -r /tmp/requirements.txt --ignore-vuln CVE-2026-3219 --ignore-vuln CVE-2026-6357",
+]}
 lint = "python scripts/lint.py"
 license-check = "reuse lint"
 license-add = """
