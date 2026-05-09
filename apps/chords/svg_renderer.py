@@ -48,9 +48,7 @@ def _tonic_string(title: str) -> int:
 def _aria_label(chord: Chord, positions: list[ChordPosition]) -> str:
     parts = [html.escape(chord.title)]
     if chord.has_barre:
-        barre_pos = next((p for p in positions if p.finger == 1 and p.fret > 0), None)
-        if barre_pos:
-            parts.append(f"barre on fret {barre_pos.fret}")
+        parts.append(f"barre on fret {chord.start_fret}")
     for pos in sorted(positions, key=lambda p: p.string_number):
         if pos.fret == -1:
             parts.append(f"string {pos.string_number} muted")
@@ -126,6 +124,19 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
         f'font-size="7" font-weight="bold" fill="currentColor">T</text>'
     )
 
+    if chord.has_barre:
+        bx = ml + (_FRETS - 1) * fret_w + fret_w // 2
+        by = mt + gh // 2
+        elements.append(
+            f'<ellipse cx="{bx}" cy="{by}" rx="{_BARRE_THICKNESS}" '
+            f'ry="{gh // 2 + circle_r}" fill="{_FINGER_FILL[1]}"'
+            f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
+        )
+        elements.append(
+            f'<text x="{bx}" y="{by + 4}" text-anchor="middle" '
+            f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
+        )
+
     pos_map: dict[int, ChordPosition] = {p.string_number: p for p in positions}
 
     for s in range(1, _STRINGS + 1):
@@ -147,29 +158,17 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
             fi = pos.fret - chord.start_fret + 1
             if 1 <= fi <= _FRETS:
                 cx = ml + (_FRETS - fi) * fret_w + fret_w // 2
-                if chord.has_barre and pos.finger == 1:
-                    by = mt + gh // 2
+                fill = _FINGER_FILL.get(pos.finger, "#cccccc")
+                stroke = _FINGER_STROKE.get(pos.finger, "#666666")
+                elements.append(
+                    f'<circle cx="{cx}" cy="{sy}" r="{circle_r}" '
+                    f'fill="{fill}" stroke="{stroke}" stroke-width="0.5"/>'
+                )
+                if pos.finger > 0:
                     elements.append(
-                        f'<ellipse cx="{cx}" cy="{by}" rx="{_BARRE_THICKNESS}" '
-                        f'ry="{gh // 2 + circle_r}" fill="{_FINGER_FILL[1]}"'
-                        f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
+                        f'<text x="{cx}" y="{sy + 3}" text-anchor="middle" '
+                        f'font-size="9" fill="{stroke}">{pos.finger}</text>'
                     )
-                    elements.append(
-                        f'<text x="{cx}" y="{by + 4}" text-anchor="middle" '
-                        f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
-                    )
-                else:
-                    fill = _FINGER_FILL.get(pos.finger, "#cccccc")
-                    stroke = _FINGER_STROKE.get(pos.finger, "#666666")
-                    elements.append(
-                        f'<circle cx="{cx}" cy="{sy}" r="{circle_r}" '
-                        f'fill="{fill}" stroke="{stroke}" stroke-width="0.5"/>'
-                    )
-                    if pos.finger > 0:
-                        elements.append(
-                            f'<text x="{cx}" y="{sy + 3}" text-anchor="middle" '
-                            f'font-size="9" fill="{stroke}">{pos.finger}</text>'
-                        )
 
     label = _aria_label(chord, positions)
     body = "\n  ".join(elements)
@@ -235,6 +234,19 @@ def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # no
             f'font-size="9" fill="currentColor">{rn}</text>'
         )
 
+    if chord.has_barre:
+        barre_cy = mt + fret_h // 2
+        bx = str_start + gw // 2
+        elements.append(
+            f'<ellipse cx="{bx}" cy="{barre_cy}" rx="{gw // 2 + circle_r}" '
+            f'ry="{_BARRE_THICKNESS}" fill="{_FINGER_FILL[1]}"'
+            f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
+        )
+        elements.append(
+            f'<text x="{bx}" y="{barre_cy + 4}" text-anchor="middle" '
+            f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
+        )
+
     # Open/muted markers above the nut
     pos_map: dict[int, ChordPosition] = {p.string_number: p for p in positions}
 
@@ -257,29 +269,17 @@ def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # no
             fi = pos.fret - chord.start_fret + 1
             if 1 <= fi <= _FRETS:
                 cy = mt + (fi - 1) * fret_h + fret_h // 2
-                if chord.has_barre and pos.finger == 1:
-                    bx = str_start + gw // 2
+                fill = _FINGER_FILL.get(pos.finger, "#cccccc")
+                stroke = _FINGER_STROKE.get(pos.finger, "#666666")
+                elements.append(
+                    f'<circle cx="{sx}" cy="{cy}" r="{circle_r}" '
+                    f'fill="{fill}" stroke="{stroke}" stroke-width="0.5"/>'
+                )
+                if pos.finger > 0:
                     elements.append(
-                        f'<ellipse cx="{bx}" cy="{cy}" rx="{gw // 2 + circle_r}" '
-                        f'ry="{_BARRE_THICKNESS}" fill="{_FINGER_FILL[1]}"'
-                        f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
+                        f'<text x="{sx}" y="{cy + 3}" text-anchor="middle" '
+                        f'font-size="9" fill="{stroke}">{pos.finger}</text>'
                     )
-                    elements.append(
-                        f'<text x="{bx}" y="{cy + 4}" text-anchor="middle" '
-                        f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
-                    )
-                else:
-                    fill = _FINGER_FILL.get(pos.finger, "#cccccc")
-                    stroke = _FINGER_STROKE.get(pos.finger, "#666666")
-                    elements.append(
-                        f'<circle cx="{sx}" cy="{cy}" r="{circle_r}" '
-                        f'fill="{fill}" stroke="{stroke}" stroke-width="0.5"/>'
-                    )
-                    if pos.finger > 0:
-                        elements.append(
-                            f'<text x="{sx}" y="{cy + 3}" text-anchor="middle" '
-                            f'font-size="9" fill="{stroke}">{pos.finger}</text>'
-                        )
 
     # Tonic marker below the grid
     tonic_sx = str_start + (_STRINGS - _tonic_string(chord.title)) * string_w
