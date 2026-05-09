@@ -11,4 +11,4 @@ class GuitarPagination(LimitOffsetPagination):
     """Default pagination: 20 items per page, capped at 50."""
 
     default_limit = 20
-    max_limit = 50
+    max_limit = 200

@@ -86,15 +86,15 @@ def test_announcements_list_limit_offset_slicing(api_client: APIClient) -> None:
 
 @pytest.mark.django_db
 def test_announcements_list_max_limit_cap(api_client: APIClient) -> None:
-    """GET /announcements/?limit=100 returns at most 50 items."""
+    """GET /announcements/?limit=1000 returns at most 200 items."""
     now = timezone.now()
-    AnnouncementFactory.create_batch(60, published_at=now - timedelta(minutes=1))
+    AnnouncementFactory.create_batch(210, published_at=now - timedelta(minutes=1))
 
-    response = api_client.get(reverse("announcements-list"), {"limit": 100})
+    response = api_client.get(reverse("announcements-list"), {"limit": 1000})
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data["count"] == 60
-    assert len(response.data["results"]) == 50
+    assert response.data["count"] == 210
+    assert len(response.data["results"]) == 200
 
 
 # =============================================================================
