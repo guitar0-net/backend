@@ -14,4 +14,4 @@ class AnnouncementsListSerializer(serializers.ModelSerializer[Announcement]):
 
     class Meta:
         model = Announcement
-        fields = ("uuid", "title", "slug", "product_version", "published_at")
+        fields = ("uuid", "title", "slug", "content", "product_version", "published_at")

@@ -31,7 +31,9 @@ def api_client() -> APIClient:
 def test_announcements_list_returns_published(api_client: APIClient) -> None:
     """GET /announcements/ returns list of published announcements."""
     announcement = AnnouncementFactory.create(
-        title="Test Announcement", published_at=timezone.now() - timedelta(minutes=1)
+        title="Test Announcement",
+        content="Test content",
+        published_at=timezone.now() - timedelta(minutes=1),
     )
 
     response = api_client.get(reverse("announcements-list"))
@@ -39,6 +41,7 @@ def test_announcements_list_returns_published(api_client: APIClient) -> None:
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data["results"]) == 1
     assert response.data["results"][0]["title"] == "Test Announcement"
+    assert response.data["results"][0]["content"] == "Test content"
     assert response.data["results"][0]["uuid"] == str(announcement.uuid)
 
 
