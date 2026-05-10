@@ -20,6 +20,7 @@ def test_lessons_list_serializer() -> None:
     lesson = LessonFactory.create(
         title="Guitar Basics",
         description="Learn the basics",
+        duration=123,
     )
 
     data = LessonsListSerializer(lesson).data
@@ -28,6 +29,7 @@ def test_lessons_list_serializer() -> None:
     assert data["title"] == "Guitar Basics"
     assert data["description"] == "Learn the basics"
     assert data["songs"] == []
+    assert data["duration"] == 123
 
 
 @pytest.mark.django_db
