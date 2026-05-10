@@ -17,4 +17,4 @@ class LessonsListSerializer(serializers.ModelSerializer[Lesson]):
 
     class Meta:
         model = Lesson
-        fields = ("uuid", "title", "description", "video_url", "songs")
+        fields = ("uuid", "title", "description", "video_url", "duration", "songs")
