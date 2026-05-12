@@ -7,7 +7,7 @@ changelog:
     - title: "🚀 Features"
       labels:
         - feature
-    - title: "🐛 Bug Fixes"
+    - title: "🔧 Bug Fixes"
       labels:
         - bug
     - title: "🔒 Security"
