@@ -33,3 +33,7 @@ jobs:
           gh label create "infrastructure" --repo "$REPO" --color "0052cc" --description "CI, deployment, Docker"       --force
           gh label create "chore"          --repo "$REPO" --color "fef2c0" --description "Maintenance, refactor, docs"  --force
           gh label create "dependencies"   --repo "$REPO" --color "0075ca" --description "Dependency updates"           --force
+          gh label create "python"         --repo "$REPO" --color "3776ab" --description "Python package updates"         --force
+          gh label create "docker"         --repo "$REPO" --color "2496ed" --description "Docker image updates"           --force
+          gh label create "ci"             --repo "$REPO" --color "f4a261" --description "GitHub Actions updates"         --force
+          gh label create "breaking-change" --repo "$REPO" --color "b60205" --description "Major version bump"            --force

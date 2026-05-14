@@ -1,0 +1,91 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+
+  "minimumReleaseAge": "3 days",
+
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "minimumReleaseAge": "0 days"
+  },
+
+  "schedule": ["before 6am on Saturday"],
+
+  "labels": ["dependencies"],
+  "commitMessagePrefix": "chore(deps):",
+  "rebaseWhen": "conflicted",
+  "separateMajorMinor": true,
+  "major": {
+    "labels": ["dependencies", "breaking-change"]
+  },
+
+  "packageRules": [
+    {
+      "matchManagers": ["pdm"],
+      "labels": ["dependencies", "python"]
+    },
+    {
+      "matchManagers": ["pdm"],
+      "matchDepTypes": ["dev", "test"],
+      "groupName": "dev-dependencies"
+    },
+    {
+      "matchPackageNames": [
+        "Django",
+        "djangorestframework",
+        "django-markdownx",
+        "drf-spectacular",
+        "drf-spectacular-sidecar"
+      ],
+      "groupName": "django",
+      "minimumReleaseAge": "5 days"
+    },
+    {
+      "matchPackageNames": [
+        "django-stubs",
+        "django-stubs-ext",
+        "djangorestframework-stubs"
+      ],
+      "groupName": "django-stubs"
+    },
+    {
+      "matchPackageNames": ["pydantic", "pydantic-settings"],
+      "groupName": "pydantic"
+    },
+    {
+      "matchPackageNames": [
+        "pytest",
+        "pytest-django",
+        "pytest-cov",
+        "pytest-mock",
+        "factory-boy",
+        "model-bakery",
+        "faker",
+        "coverage"
+      ],
+      "groupName": "testing"
+    },
+    {
+      "matchPackageNames": [
+        "ruff",
+        "mypy",
+        "bandit",
+        "pre-commit",
+        "pip-audit",
+        "reuse",
+        "commitizen"
+      ],
+      "groupName": "dev-tools"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "labels": ["dependencies", "ci"]
+    },
+    {
+      "matchManagers": ["dockerfile"],
+      "labels": ["dependencies", "docker"]
+    }
+  ]
+}

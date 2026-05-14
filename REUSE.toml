@@ -12,6 +12,7 @@ path = [
     "infrastructure/ansible/.vault_pass",
     "infrastructure/ansible/inventory/group_vars/production/vault.yml",
     "infrastructure/ansible/inventory/group_vars/staging/vault.yml",
+    ".github/renovate.json",
 ]
 precedence = "closest"
 SPDX-FileCopyrightText = "Andrey Kotlyar <guitar0.app@gmail.com>"
