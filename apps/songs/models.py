@@ -4,6 +4,8 @@
 
 """Models for the songs app."""
 
+import uuid
+
 from django.db import models
 from markdownx.models import MarkdownxField  # type: ignore[import-untyped]
 
@@ -14,6 +16,7 @@ from apps.schemes.models import ImageScheme
 class Song(models.Model):
     """Main model for song."""
 
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField("Название", max_length=200)
     chords = models.ManyToManyField(Chord, verbose_name="Аккорды", blank=True)
     schemes = models.ManyToManyField(

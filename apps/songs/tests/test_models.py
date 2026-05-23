@@ -4,6 +4,8 @@
 
 """Tests for Song model."""
 
+import uuid
+
 import pytest
 
 from apps.chords.tests.factories import ChordFactory
@@ -20,6 +22,21 @@ def test_song_factory_creates_song() -> None:
     assert song.title
     assert song.text
     assert 60 <= song.metronome <= 180
+
+
+@pytest.mark.django_db
+def test_song_uuid_is_auto_generated() -> None:
+    song = SongFactory.create()
+
+    assert isinstance(song.uuid, uuid.UUID)
+
+
+@pytest.mark.django_db
+def test_song_uuid_is_unique() -> None:
+    song1 = SongFactory.create()
+    song2 = SongFactory.create(title="Another Song")
+
+    assert song1.uuid != song2.uuid
 
 
 @pytest.mark.django_db
