@@ -5,7 +5,7 @@
 """Factory for generating test Announcement instances."""
 
 from django.utils import timezone
-from factory import Faker  # type: ignore[attr-defined]
+from factory import Faker, Sequence  # type: ignore[attr-defined]
 from factory.django import DjangoModelFactory
 
 from apps.announcements.models import Announcement
@@ -15,7 +15,7 @@ class AnnouncementFactory(DjangoModelFactory[Announcement]):
     """Factory for creating Announcement instances with realistic data."""
 
     title = Faker("sentence", nb_words=4)
-    slug = Faker("slug")
+    slug = Sequence(lambda n: f"announcement-{n}")
     content = Faker("paragraph", nb_sentences=3)
     product_version = Faker("numerify", text="##.##.##")
     published_at = timezone.now()
