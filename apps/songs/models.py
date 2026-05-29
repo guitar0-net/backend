@@ -24,6 +24,7 @@ class Song(models.Model):
     )
     text = MarkdownxField("Текст песни", help_text="С аккордами и переносами строк")
     metronome = models.IntegerField("Метроном", default=0)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
 
     class Meta:
         verbose_name = "Песня"
