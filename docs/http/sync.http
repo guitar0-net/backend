@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+### Sync API
+### Base URL: /api/v1/sync/
+
+@baseUrl = http://localhost:8000/api/v1
+
+### Check current content version (lightweight staleness check)
+# Returns {"version": "<ISO-8601>"} or {"version": null} if no published lessons.
+# Client calls this on app launch — only syncs if version differs from local.
+GET {{baseUrl}}/sync/version/ HTTP/1.1
+
+###
+
+### Full sync — all published lessons and courses
+# Returns: version, lesson_uuids, lessons[], course_uuids, courses[]
+# lesson_uuids / course_uuids always contain the full published set
+# so the client can prune locally deleted content.
+GET {{baseUrl}}/sync/lessons/ HTTP/1.1
+
+###
+
+### Delta sync — only lessons updated after a given timestamp
+# Replace the timestamp with the version value stored after the last full sync.
+# lessons[] contains only changed lessons; lesson_uuids, courses[], and course_lessons[]
+# always contain the full published set regardless of `since`.
+GET {{baseUrl}}/sync/lessons/?since=2026-01-01T00:00:00Z HTTP/1.1
+
+###
+
+### Delta sync — naive datetime (no timezone suffix)
+# Server treats naive ISO-8601 as UTC.
+GET {{baseUrl}}/sync/lessons/?since=2026-01-01T00:00:00 HTTP/1.1
+
+###
+
+### Delta sync — far-future cutoff (expects empty lessons list)
+GET {{baseUrl}}/sync/lessons/?since=2099-12-31T23:59:59Z HTTP/1.1
+
+###
+
+### Invalid since value (expects 400)
+GET {{baseUrl}}/sync/lessons/?since=not-a-date HTTP/1.1

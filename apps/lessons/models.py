@@ -65,6 +65,12 @@ class Lesson(models.Model):
         default=True,
     )
 
+    updated_at = models.DateTimeField(
+        "Обновлено",
+        auto_now=True,
+        db_index=True,
+    )
+
     class Meta:
         verbose_name = "Урок"
         verbose_name_plural = "Уроки"

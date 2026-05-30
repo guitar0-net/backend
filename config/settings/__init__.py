@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.lessons",
     "apps.courses",
     "apps.announcements",
+    "apps.sync",
 ]
 
 MIDDLEWARE = [
