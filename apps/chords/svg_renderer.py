@@ -16,6 +16,12 @@ _FINGER_STROKE = {1: "#cc0033", 2: "#cc6600", 3: "#006600", 4: "#0033cc"}
 
 _ROMAN = ("", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII")
 _BARRE_THICKNESS = 6  # thin radius of the barre ellipse in both orientations
+_FINGER = {
+    1: "указательным пальцем",
+    2: "средним пальцем",
+    3: "безымянным пальцем",
+    4: "мизинцем",
+}
 
 
 def render_chord_svg(chord: Chord) -> tuple[str, str]:
@@ -48,15 +54,16 @@ def _tonic_string(title: str) -> int:
 def _aria_label(chord: Chord, positions: list[ChordPosition]) -> str:
     parts = [html.escape(chord.title)]
     if chord.has_barre:
-        parts.append(f"barre on fret {chord.start_fret}")
+        parts.append(f"баре на {chord.start_fret} ладу")
     for pos in sorted(positions, key=lambda p: p.string_number):
         if pos.fret == -1:
-            parts.append(f"string {pos.string_number} muted")
+            parts.append(f"струна {pos.string_number} заглушена")
         elif pos.fret == 0:
-            parts.append(f"string {pos.string_number} open")
+            parts.append(f"струна {pos.string_number} открытая")
         else:
+            finger = _FINGER.get(pos.finger, f"палец {pos.finger}")
             parts.append(
-                f"string {pos.string_number} fret {pos.fret} finger {pos.finger}"
+                f"струна {pos.string_number} зажата на {pos.fret} ладу {finger}"
             )
     return ", ".join(parts)
 

@@ -215,3 +215,104 @@ def test_tonic_marker_is_on_correct_string(title: str, expected_y: int) -> None:
         f'x="10" y="{expected_y}" text-anchor="end" font-size="7" font-weight="bold"'
         in horizontal
     )
+
+
+@pytest.mark.django_db
+def test_aria_label_uses_russian_word_for_muted_string() -> None:
+    chord = _make_chord(
+        positions=[
+            {"string_number": 1, "fret": -1, "finger": 0},
+            {"string_number": 2, "fret": 1, "finger": 2},
+            {"string_number": 3, "fret": 1, "finger": 3},
+            {"string_number": 4, "fret": 1, "finger": 4},
+            {"string_number": 5, "fret": -1, "finger": 0},
+            {"string_number": 6, "fret": -1, "finger": 0},
+        ]
+    )
+
+    horizontal, _ = render_chord_svg(chord)
+
+    assert "заглушена" in horizontal
+
+
+@pytest.mark.django_db
+def test_aria_label_uses_russian_word_for_open_string() -> None:
+    chord = _make_chord(
+        positions=[
+            {"string_number": 1, "fret": 0, "finger": 0},
+            {"string_number": 2, "fret": 1, "finger": 2},
+            {"string_number": 3, "fret": 1, "finger": 3},
+            {"string_number": 4, "fret": 0, "finger": 0},
+            {"string_number": 5, "fret": -1, "finger": 0},
+            {"string_number": 6, "fret": -1, "finger": 0},
+        ]
+    )
+
+    horizontal, _ = render_chord_svg(chord)
+
+    assert "открытая" in horizontal
+
+
+@pytest.mark.parametrize(
+    ("finger", "expected"),
+    [
+        (1, "указательным пальцем"),
+        (2, "средним пальцем"),
+        (3, "безымянным пальцем"),
+        (4, "мизинцем"),
+    ],
+)
+@pytest.mark.django_db
+def test_aria_label_uses_russian_finger_name(finger: int, expected: str) -> None:
+    chord = _make_chord(
+        positions=[
+            {"string_number": 1, "fret": 2, "finger": finger},
+            {"string_number": 2, "fret": -1, "finger": 0},
+            {"string_number": 3, "fret": -1, "finger": 0},
+            {"string_number": 4, "fret": -1, "finger": 0},
+            {"string_number": 5, "fret": -1, "finger": 0},
+            {"string_number": 6, "fret": -1, "finger": 0},
+        ]
+    )
+
+    horizontal, _ = render_chord_svg(chord)
+
+    assert expected in horizontal
+
+
+@pytest.mark.django_db
+def test_aria_label_describes_barre_fret_in_russian() -> None:
+    chord = _make_chord(
+        has_barre=True,
+        start_fret=2,
+        positions=[
+            {"string_number": 1, "fret": 2, "finger": 1},
+            {"string_number": 2, "fret": 2, "finger": 1},
+            {"string_number": 3, "fret": 2, "finger": 1},
+            {"string_number": 4, "fret": 2, "finger": 1},
+            {"string_number": 5, "fret": 2, "finger": 1},
+            {"string_number": 6, "fret": 2, "finger": 1},
+        ],
+    )
+
+    horizontal, _ = render_chord_svg(chord)
+
+    assert "баре на 2 ладу" in horizontal
+
+
+@pytest.mark.django_db
+def test_aria_label_uses_roman_numeral_for_pressed_fret() -> None:
+    chord = _make_chord(
+        positions=[
+            {"string_number": 1, "fret": 3, "finger": 2},
+            {"string_number": 2, "fret": -1, "finger": 0},
+            {"string_number": 3, "fret": -1, "finger": 0},
+            {"string_number": 4, "fret": -1, "finger": 0},
+            {"string_number": 5, "fret": -1, "finger": 0},
+            {"string_number": 6, "fret": -1, "finger": 0},
+        ]
+    )
+
+    horizontal, _ = render_chord_svg(chord)
+
+    assert "зажата на 3 ладу" in horizontal
