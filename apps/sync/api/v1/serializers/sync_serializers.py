@@ -52,11 +52,11 @@ class ChordSyncSerializer(serializers.ModelSerializer[Chord]):
 
 
 class SchemeSyncSerializer(serializers.ModelSerializer[ImageScheme]):
-    """Scheme for offline sync — id and image URL only."""
+    """Scheme for offline sync."""
 
     class Meta:
         model = ImageScheme
-        fields = ("id", "image")
+        fields = ("id", "image", "inscription", "height", "width")
 
 
 class CourseFlatSerializer(serializers.ModelSerializer[Course]):
@@ -76,3 +76,23 @@ class CourseLessonFlatSerializer(serializers.ModelSerializer[CourseLesson]):
     class Meta:
         model = CourseLesson
         fields = ("course_uuid", "lesson_uuid", "order")
+
+
+class SyncLessonsResponseSerializer(serializers.Serializer[Any]):
+    """Shape of the /api/v1/sync/lessons/ response."""
+
+    version = serializers.CharField(allow_null=True)
+    lesson_uuids = serializers.ListField(child=serializers.UUIDField())
+    lessons = LessonFlatSerializer(many=True)
+    songs = SongFlatSerializer(many=True)
+    chords = ChordSyncSerializer(many=True)
+    schemes = SchemeSyncSerializer(many=True)
+    course_uuids = serializers.ListField(child=serializers.UUIDField())
+    courses = CourseFlatSerializer(many=True)
+    course_lessons = CourseLessonFlatSerializer(many=True)
+
+
+class ContentVersionResponseSerializer(serializers.Serializer[Any]):
+    """Shape of the /api/v1/sync/version/ response."""
+
+    version = serializers.CharField(allow_null=True)
