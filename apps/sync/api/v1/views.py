@@ -14,7 +14,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.chords.models import Chord
 from apps.lessons.models import Lesson
+from apps.schemes.models import ImageScheme
 from apps.sync.selectors import (
     get_content_version,
     get_course_lessons_for_sync,
@@ -25,12 +27,8 @@ from apps.sync.selectors import (
 )
 
 from .serializers.sync_serializers import (
-    ChordSyncSerializer,
-    CourseFlatSerializer,
-    CourseLessonFlatSerializer,
-    LessonFlatSerializer,
-    SchemeSyncSerializer,
-    SongFlatSerializer,
+    ContentVersionResponseSerializer,
+    SyncLessonsResponseSerializer,
 )
 
 logger = logging.getLogger("sync")
@@ -50,7 +48,9 @@ _SINCE_PARAM = OpenApiParameter(
 )
 
 
-@extend_schema(parameters=[_SINCE_PARAM])
+@extend_schema(
+    parameters=[_SINCE_PARAM], responses={200: SyncLessonsResponseSerializer}
+)
 class LessonsSyncView(APIView):
     """Flat sync payload for offline download.
 
@@ -73,55 +73,43 @@ class LessonsSyncView(APIView):
                 status=400,
             )
 
-        lessons_qs = get_lessons_for_sync(since)
-        lessons_list = list(lessons_qs)
-
-        lessons_data = LessonFlatSerializer(lessons_list, many=True).data
-        songs_data, chords_data, schemes_data = self._build_flat_song_data(lessons_list)
-
-        courses_qs = get_courses_for_sync()
-        courses_data = CourseFlatSerializer(courses_qs, many=True).data
-
-        course_lessons_qs = get_course_lessons_for_sync()
-        course_lessons_data = CourseLessonFlatSerializer(
-            course_lessons_qs, many=True
-        ).data
+        lessons_list = list(get_lessons_for_sync(since))
+        songs_out, chord_map, scheme_map = self._collect_song_data(lessons_list)
 
         logger.debug(
             "Sync: since=%s lessons=%d songs=%d chords=%d schemes=%d",
             since,
-            len(lessons_data),
-            len(songs_data),
-            len(chords_data),
-            len(schemes_data),
+            len(lessons_list),
+            len(songs_out),
+            len(chord_map),
+            len(scheme_map),
         )
 
-        return Response({
+        payload = {
             "version": get_content_version(),
-            "lesson_uuids": [str(u) for u in get_published_lesson_uuids()],
-            "lessons": lessons_data,
-            "songs": songs_data,
-            "chords": chords_data,
-            "schemes": schemes_data,
-            "course_uuids": [str(u) for u in get_published_course_uuids()],
-            "courses": courses_data,
-            "course_lessons": course_lessons_data,
-        })
+            "lesson_uuids": get_published_lesson_uuids(),
+            "lessons": lessons_list,
+            "songs": songs_out,
+            "chords": list(chord_map.values()),
+            "schemes": list(scheme_map.values()),
+            "course_uuids": get_published_course_uuids(),
+            "courses": get_courses_for_sync(),
+            "course_lessons": get_course_lessons_for_sync(),
+        }
+        return Response(SyncLessonsResponseSerializer(payload).data)
 
     @staticmethod
-    def _build_flat_song_data(
+    def _collect_song_data(
         lessons: list[Lesson],
-    ) -> tuple[Any, Any, Any]:
-        """Extract flat songs, deduplicated chords, and deduplicated schemes.
+    ) -> tuple[list[dict[str, Any]], dict[int, Chord], dict[int, ImageScheme]]:
+        """Collect songs, chords, and schemes from prefetched lessons.
 
-        Iterates over prefetched songs/chords/schemes — no extra DB queries.
-        Returns (songs_data, chords_data, schemes_data) ready for serialization.
-        A song shared across multiple lessons appears once per lesson with a
-        different lesson_uuid — intentional, mirrors the M2M relationship.
+        No extra DB queries. A song shared across multiple lessons appears once
+        per lesson with a different lesson_uuid — mirrors the M2M relationship.
         """
         songs_out: list[dict[str, Any]] = []
-        chord_map: dict[int, Any] = {}
-        scheme_map: dict[int, Any] = {}
+        chord_map: dict[int, Chord] = {}
+        scheme_map: dict[int, ImageScheme] = {}
 
         for lesson in lessons:
             for song in lesson.songs.all():
@@ -141,10 +129,7 @@ class LessonsSyncView(APIView):
                 for s in song_schemes:
                     scheme_map.setdefault(s.pk, s)
 
-        songs_data = SongFlatSerializer(songs_out, many=True).data
-        chords_data = ChordSyncSerializer(list(chord_map.values()), many=True).data
-        schemes_data = SchemeSyncSerializer(list(scheme_map.values()), many=True).data
-        return songs_data, chords_data, schemes_data
+        return songs_out, chord_map, scheme_map
 
     @staticmethod
     def _parse_since(request: Request) -> datetime | None:
@@ -167,6 +152,7 @@ class LessonsSyncView(APIView):
             return dt
 
 
+@extend_schema(responses={200: ContentVersionResponseSerializer})
 class ContentVersionView(APIView):
     """Lightweight endpoint for staleness checks.
 
@@ -179,4 +165,5 @@ class ContentVersionView(APIView):
 
     def get(self, request: Request) -> Response:  # noqa: PLR6301
         """Return current content version."""
-        return Response({"version": get_content_version()})
+        payload = {"version": get_content_version()}
+        return Response(ContentVersionResponseSerializer(payload).data)
