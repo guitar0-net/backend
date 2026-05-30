@@ -30,7 +30,7 @@ dependencies = [
     "drf-spectacular>=0.29.0",
     "drf-spectacular-sidecar>=2026.3.1",
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 readme = "README.md"
 license = {text = "AGPL-3.0-or-later"}
 
@@ -62,7 +62,7 @@ test = [
 source = "scm"
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 plugins = [
     "pydantic.mypy",
     "mypy_django_plugin.main",

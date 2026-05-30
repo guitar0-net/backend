@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 [![CI](https://github.com/guitar0-net/server/actions/workflows/ci.yml/badge.svg)](https://github.com/guitar0-net/server/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/guitar0-net/backend/graph/badge.svg?token=O0HFMUOVO6)](https://codecov.io/gh/guitar0-net/backend)
-[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/python-3.14-blue.svg)](https://python.org)
 ![Django](https://img.shields.io/badge/django-6-blue)
 [![License](https://img.shields.io/badge/license-AGPL--3.0--or--later-green.svg)](./LICENSES/AGPL-3.0-or-later.txt)
 [![REUSE status](https://api.reuse.software/badge/github.com/guitar0-net/backend)](https://api.reuse.software/info/github.com/guitar0-net/backend)
@@ -21,7 +21,7 @@ The service provides user accounts, song and chord libraries, structured guitar 
 
 | Layer     | Technology                       |
 | --------- | -------------------------------- |
-| Language  | Python 3.13                      |
+| Language  | Python 3.14                      |
 | Framework | Django 6 · Django REST Framework |
 | Database  | PostgreSQL 16                    |
 | Server    | Gunicorn                         |
@@ -32,7 +32,7 @@ The service provides user accounts, song and chord libraries, structured guitar 
 
 ## Prerequisites
 
-- Python 3.13+
+- Python 3.14+
 - [PDM](https://pdm-project.org)
 - PostgreSQL 16 — or Docker (see below)
 
