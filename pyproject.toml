@@ -17,7 +17,7 @@ authors = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "Django>=6.0.2",
+    "Django>=6.0.6",
     "djangorestframework>=3.16.1",
     "pydantic-settings>=2.11.0",
     "dj-database-url>=3.0.1",

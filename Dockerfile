@@ -7,8 +7,8 @@ FROM python:3.14.5-slim AS builder
 
 WORKDIR /app
 
-# Install PDM
-RUN pip install --no-cache-dir pdm
+# Upgrade pip to fix known vulnerabilities, then install PDM
+RUN pip install --no-cache-dir "pip==26.1.2" && pip install --no-cache-dir pdm
 
 # Copy dependency files
 COPY pyproject.toml pdm.lock ./
@@ -49,8 +49,8 @@ RUN groupadd --gid 1001 appuser \
 # Copy requirements from builder
 COPY --from=builder /app/requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Upgrade pip to fix known vulnerabilities, then install dependencies
+RUN pip install --no-cache-dir "pip==26.1.2" && pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY --chown=appuser:appuser manage.py ./
