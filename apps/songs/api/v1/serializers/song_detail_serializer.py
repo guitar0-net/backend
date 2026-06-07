@@ -7,7 +7,9 @@
 from rest_framework import serializers
 
 from apps.chords.api.v1.serializers.chord_detail_serializer import ChordDetailSerializer
-from apps.schemes.api.serializers import ImageSchemeSerializer
+from apps.schemes.api.v1.serializers.image_scheme_serializer import (
+    ImageSchemeSerializer,
+)
 from apps.songs.models import Song
 
 

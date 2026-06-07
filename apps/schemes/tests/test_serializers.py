@@ -6,7 +6,9 @@
 import pytest
 from rest_framework.serializers import ValidationError
 
-from apps.schemes.api.serializers import ImageSchemeSerializer
+from apps.schemes.api.v1.serializers.image_scheme_serializer import (
+    ImageSchemeSerializer,
+)
 from apps.schemes.tests.factories import ImageSchemeFactory
 
 
