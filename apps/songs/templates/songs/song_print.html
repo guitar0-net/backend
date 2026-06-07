@@ -1,0 +1,215 @@
+<!-- SPDX-FileCopyrightText: 2026 Andrey Kotlyar <guitar0.app@gmail.com>
+
+SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 15mm 15mm 15mm 15mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Liberation Serif", Georgia, serif;
+        font-size: {{ text_font_size }};
+        color: #000;
+        margin: 0;
+        padding: 0;
+      }
+
+      h1.song-title {
+        font-size: 1.6em;
+        font-weight: bold;
+        margin: 0 0 12pt 0;
+        padding-bottom: 4pt;
+        border-bottom: 1pt solid #333;
+      }
+
+      /* ── Chords section ── */
+      .chords-section {
+        margin-bottom: 12pt;
+      }
+
+      .chords-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8pt;
+        align-items: flex-start;
+      }
+
+      .chord-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: {{ chord_width }};
+      }
+
+      .chord-item svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .chord-name {
+        font-size: 0.8em;
+        font-weight: bold;
+        margin-top: 2pt;
+        text-align: center;
+      }
+
+      /* ── Schemes section ── */
+      .schemes-section {
+        margin-bottom: 12pt;
+      }
+
+      .schemes-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8pt;
+        align-items: flex-start;
+      }
+
+      .scheme-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .scheme-item img {
+        width: {{ scheme_width }};
+        height: auto;
+        display: block;
+      }
+
+      .scheme-caption {
+        font-size: 0.8em;
+        font-weight: bold;
+        margin-bottom: 2pt;
+        text-align: center;
+      }
+
+      /* ── Text section ── */
+      .text-section {
+        margin-top: 4pt;
+      }
+
+      .song-text {
+        columns: {{ columns_count }};
+        column-gap: 12pt;
+        orphans: 3;
+        widows: 3;
+      }
+
+      /* Override markdown block styles */
+      .song-text p {
+        margin: 0 0 4pt 0;
+        line-height: 1.5;
+      }
+
+      .song-text h1,
+      .song-text h2,
+      .song-text h3 {
+        font-size: 1em;
+        font-weight: bold;
+        margin: 6pt 0 2pt 0;
+      }
+
+      .song-text h4,
+      .song-text h5 {
+        font-size: 1em;
+        font-weight: 500;
+        color: oklch(0.577 0.245 27.325);
+        margin: 6pt 0 2pt 0;
+      }
+
+      .song-text h6 {
+        font-size: 1em;
+        font-weight: bold;
+        background: oklch(0.97 0 0);
+        color: oklch(0.556 0 0);
+        border-radius: 3pt;
+        padding: 1pt 3pt;
+        margin: 6pt 0 2pt 0;
+      }
+
+      .song-text ul,
+      .song-text ol {
+        margin: 0 0 4pt 0;
+        padding-left: 12pt;
+      }
+
+      .song-text li {
+        margin-bottom: 2pt;
+        line-height: 1.5;
+      }
+
+      .song-text strong {
+        font-weight: bold;
+      }
+
+      .song-text em {
+        font-style: italic;
+      }
+
+      .song-text code,
+      .song-text pre {
+        font-family: "Liberation Mono", "Courier New", monospace;
+        font-size: 0.9em;
+        background: #f5f5f5;
+        padding: 1pt 3pt;
+      }
+
+      .song-text blockquote {
+        margin: 4pt 0 4pt 8pt;
+        padding-left: 6pt;
+        border-left: 2pt solid #aaa;
+        color: #555;
+      }
+
+      .song-text hr {
+        border: none;
+        border-top: 1pt solid #ccc;
+        margin: 6pt 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="song-title">{{ song_title }}</h1>
+
+    {% if chords %}
+    <section class="chords-section">
+      <div class="chords-grid">
+        {% for chord in chords %}
+        <div class="chord-item">
+          <div class="chord-name">{{ chord.title }}</div>
+          {{ chord.svg|safe }}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %} {% if schemes %}
+    <section class="schemes-section">
+      <div class="schemes-row">
+        {% for scheme in schemes %}
+        <div class="scheme-item">
+          {% if scheme.inscription %}
+          <div class="scheme-caption">{{ scheme.inscription }}</div>
+          {% endif %}
+          <img src="{{ scheme.path }}" alt="{{ scheme.inscription }}" />
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %} {% if text_html %}
+    <section class="text-section">
+      <div class="song-text">{{ text_html|safe }}</div>
+    </section>
+    {% endif %}
+  </body>
+</html>
