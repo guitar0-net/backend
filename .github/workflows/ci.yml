@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.13"]
+        python-version: ["3.14"]
 
     steps:
       - name: Checkout repository
@@ -28,6 +28,7 @@ jobs:
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ matrix.python-version }}
+          version: "2.27.0"
           cache: true
           cache-dependency-path: |
             pdm.lock
@@ -44,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.13"]
+        python-version: ["3.14"]
 
     env:
       SECRET_KEY: "dummy-secret-key"
@@ -58,6 +59,7 @@ jobs:
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ matrix.python-version }}
+          version: "2.27.0"
           cache: true
           cache-dependency-path: |
             pdm.lock
@@ -74,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.13"]
+        python-version: ["3.14"]
 
     env:
       SECRET_KEY: "dummy-secret-key"
@@ -88,6 +90,7 @@ jobs:
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ matrix.python-version }}
+          version: "2.27.0"
           cache: true
           cache-dependency-path: |
             pdm.lock
@@ -120,7 +123,8 @@ jobs:
       - name: Set up PDM with cache
         uses: pdm-project/setup-pdm@v4
         with:
-          python-version: "3.13"
+          python-version: "3.14"
+          version: "2.27.0"
           cache: true
           cache-dependency-path: |
             pdm.lock
