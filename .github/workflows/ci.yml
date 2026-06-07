@@ -99,6 +99,12 @@ jobs:
       - name: Install dependencies
         run: pdm install --frozen-lockfile
 
+      - name: Install WeasyPrint system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangoft2-1.0-0 libpangocairo-1.0-0 \
+            libcairo2 libgdk-pixbuf2.0-0 shared-mime-info fonts-liberation
+
       - name: Run unit tests
         run: pdm run pytest --maxfail=1 --cov --cov-branch --cov-report=xml --cov-fail-under=90 -m "not integration"
 
