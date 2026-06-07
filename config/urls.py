@@ -32,6 +32,7 @@ urlpatterns = [
     path("admin-guitar0/", admin.site.urls),
     path("api/v1/", include("apps.chords.api.v1.urls")),
     path("api/v1/", include("apps.lessons.api.v1.urls")),
+    path("api/v1/", include("apps.songs.api.v1.urls")),
     path("api/v1/", include("apps.courses.api.v1.urls")),
     path("api/v1/", include("apps.announcements.api.v1.urls")),
     path("api/v1/", include("apps.sync.api.v1.urls")),
