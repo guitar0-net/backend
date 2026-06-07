@@ -11,9 +11,4 @@ from apps.songs.models import Song
 
 def get_song_by_uuid(uuid: uuid_module.UUID) -> Song | None:
     """Return a Song by UUID with prefetched chords and schemes, or None."""
-    return (
-        Song.objects
-        .filter(uuid=uuid)
-        .prefetch_related("chords__positions", "schemes")
-        .first()
-    )
+    return Song.objects.filter(uuid=uuid).prefetch_related("chords", "schemes").first()

@@ -4,26 +4,33 @@
 
 """Tests for songs PDF renderer."""
 
-from typing import Any, cast
-
 import pytest
 
-from apps.songs.pdf_renderer import PrintSettings, render_song_pdf
+from apps.songs.pdf_renderer import Orientation, PrintSettings, Size, render_song_pdf
 from apps.songs.tests.factories import SongFactory
 
 
-def _default_settings(**overrides: Any) -> PrintSettings:  # noqa: ANN401
-    base: dict[str, Any] = {
-        "show_chords": True,
-        "show_schemes": True,
-        "show_text": True,
-        "chord_orientation": "vertical",
-        "chord_size": 3,
-        "scheme_size": 3,
-        "text_size": 3,
-        "columns_count": 1,
-    }
-    return cast(PrintSettings, {**base, **overrides})
+def _default_settings(  # noqa: PLR0913
+    *,
+    show_chords: bool = True,
+    show_schemes: bool = True,
+    show_text: bool = True,
+    chord_orientation: Orientation = "vertical",
+    chord_size: Size = 3,
+    scheme_size: Size = 3,
+    text_size: Size = 3,
+    columns_count: int = 1,
+) -> PrintSettings:
+    return PrintSettings(
+        show_chords=show_chords,
+        show_schemes=show_schemes,
+        show_text=show_text,
+        chord_orientation=chord_orientation,
+        chord_size=chord_size,
+        scheme_size=scheme_size,
+        text_size=text_size,
+        columns_count=columns_count,
+    )
 
 
 @pytest.mark.integration
