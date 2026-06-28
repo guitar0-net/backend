@@ -29,8 +29,8 @@ class ChordFactory(DjangoModelFactory[Chord]):
 class ChordPositionFactory(DjangoModelFactory[ChordPosition]):
     """Factory for creating ChordPosition instances."""
 
-    chord = factory.SubFactory(ChordFactory)  # pyright: ignore[reportPrivateImportUsage]
-    string_number = factory.Sequence(lambda n: (n % 6) + 1)  # pyright: ignore[reportPrivateImportUsage]
+    chord = factory.SubFactory(ChordFactory)
+    string_number = factory.Sequence(lambda n: (n % 6) + 1)
     fret = Faker("pyint", min_value=-1, max_value=12)
     finger = Faker("pyint", min_value=0, max_value=4)
 
