@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -37,6 +37,7 @@ class UserFactory(DjangoModelFactory[User]):
         skip_postgeneration_save = True
 
     email = fake.email()
+    avatar = ""
 
     @factory.post_generation  # type: ignore[attr-defined, untyped-decorator]
     def password(

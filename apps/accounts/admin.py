@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -7,6 +7,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
+from apps.accounts.models.social_account import SocialAccount
 from apps.accounts.models.user import User
 
 
@@ -52,3 +53,12 @@ class UserAdmin(DjangoUserAdmin):  # type: ignore[type-arg]
             },
         ),
     )
+
+
+@admin.register(SocialAccount)
+class SocialAccountAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    """SocialAccount admin interface."""
+
+    list_display = ("id", "user", "provider", "provider_uid", "created_at")
+    list_filter = ("provider",)
+    search_fields = ("provider_uid", "user__email")

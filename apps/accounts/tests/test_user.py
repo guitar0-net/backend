@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -24,3 +24,15 @@ def test_user_model_configuration(user_factory: type[UserFactory]) -> None:
 def test_user_str_representation(user_factory: type[UserFactory]) -> None:
     user = user_factory(email="user@example.com")
     assert str(user) == "user@example.com"
+
+
+@pytest.mark.django_db
+def test_user_avatar_accepts_url(user_factory: type[UserFactory]) -> None:
+    user = user_factory(avatar="https://example.com/avatar/andrey.jpg")
+    assert user.avatar == "https://example.com/avatar/andrey.jpg"
+
+
+@pytest.mark.django_db
+def test_user_avatar_defaults_to_empty(user_factory: type[UserFactory]) -> None:
+    user = user_factory()
+    assert not user.avatar

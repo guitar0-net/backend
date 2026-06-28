@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Andrey Kotlyar <guitar0.app@gmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Andrey Kotlyar <guitar0.app@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -11,7 +11,8 @@ from django.http import HttpResponse
 from django.test import RequestFactory
 from django.urls import reverse
 
-from apps.accounts.admin import UserAdmin
+from apps.accounts.admin import SocialAccountAdmin, UserAdmin
+from apps.accounts.models.social_account import SocialAccount
 from apps.accounts.models.user import User
 
 
@@ -93,3 +94,8 @@ def test_admin_list_view_access_superuser(
     request.user = superuser
     response = UserAdmin(User, admin.site).changelist_view(request)
     assert response.status_code == HttpResponse.status_code
+
+
+@pytest.mark.django_db
+def test_social_account_model_registration(admin_site: admin.AdminSite) -> None:
+    assert isinstance(admin_site._registry[SocialAccount], SocialAccountAdmin)
