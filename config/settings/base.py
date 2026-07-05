@@ -41,6 +41,7 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str
     DATABASE_URL: str
+    GOOGLE_CLIENT_ID: str | None = None
 
     DEBUG: bool = False
     ALLOWED_HOSTS: list[str] = []
