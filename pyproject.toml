@@ -31,7 +31,7 @@ dependencies = [
     "drf-spectacular-sidecar>=2026.3.1",
     "weasyprint>=65.0",
     "djangorestframework-simplejwt[crypto]>=5.5.1",
-    "google-auth>=2.55.0",
+    "google-auth[requests]>=2.55.0",
 ]
 requires-python = ">=3.14"
 readme = "README.md"
