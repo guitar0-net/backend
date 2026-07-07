@@ -11,6 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from apps.accounts.services import InvalidGoogleTokenError, authenticate_via_google
 
@@ -44,3 +45,11 @@ class GoogleAuthView(APIView):
             "refresh": str(refresh),
             "user": GoogleAuthUserSerializer(user).data,
         })
+
+
+class RefreshTokenView(TokenRefreshView):
+    """Rotate a refresh token for a new access/refresh pair."""
+
+
+class VerifyTokenView(TokenVerifyView):
+    """Verify that a JWT access token is valid."""
