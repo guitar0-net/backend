@@ -6,8 +6,10 @@
 
 from django.urls import path
 
-from .views import GoogleAuthView
+from .views import GoogleAuthView, RefreshTokenView, VerifyTokenView
 
 urlpatterns = [
     path("auth/google/", GoogleAuthView.as_view(), name="auth-google"),
+    path("auth/token/refresh/", RefreshTokenView.as_view(), name="token-refresh"),
+    path("auth/token/verify/", VerifyTokenView.as_view(), name="token-verify"),
 ]

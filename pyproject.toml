@@ -163,8 +163,13 @@ fail_under = 90
 show_missing = true
 
 [tool.pyright]
+typeCheckingMode = "basic"
+useLibraryCodeForTypes = true
 reportPrivateImportUsage = false
 reportIncompatibleVariableOverride = false
+# plugin; Pyright can't run it and false-flags these. mypy (strict) is the real gate.
+reportAttributeAccessIssue = "none"
+reportCallIssue = "none"
 
 [tool.bandit]
 exclude_dirs = ["tests", "migrations", ".venv"]
