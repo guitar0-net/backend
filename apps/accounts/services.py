@@ -12,6 +12,8 @@ from django.db import IntegrityError, transaction
 from google.auth import exceptions as google_auth_exceptions
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.accounts.models.social_account import SocialAccount
 from apps.accounts.models.user import User
@@ -110,3 +112,20 @@ def authenticate_via_google(id_token: str) -> tuple[User, bool]:
         return social_account.user, False
 
     return user, created
+
+
+def blacklist_refresh_token(token: str) -> None:
+    """Blacklist a refresh token so it can no longer be used to refresh or log out.
+
+    Args:
+        token: The raw refresh token to invalidate.
+
+    Raises:
+        InvalidToken: If the token is malformed, expired, or already blacklisted.
+    """
+    try:
+        # simplejwt's own annotation for `token` is `Token | None`, but the
+        # constructor actually decodes a raw encoded token string.
+        RefreshToken(token).blacklist()  # type: ignore[arg-type]
+    except TokenError as exc:
+        raise InvalidToken from exc
