@@ -25,7 +25,7 @@ def _stub_claims(
     monkeypatch: pytest.MonkeyPatch,
     *,
     sub: str = "246810",
-    email: str = "олег@example.com",
+    email: str = "user@example.com",
 ) -> None:
     monkeypatch.setattr(
         "apps.accounts.services.verify_google_id_token",
@@ -33,9 +33,9 @@ def _stub_claims(
             "sub": sub,
             "email": email,
             "email_verified": True,
-            "given_name": "Олег",
-            "family_name": "Петров",
-            "picture": "https://example.com/avatar/oleg.jpg",
+            "given_name": "Имя",
+            "family_name": "Фамилия",
+            "picture": "https://example.com/avatar/user.jpg",
         },
     )
 
@@ -66,9 +66,9 @@ def test_google_auth_returns_user_profile_from_google_claims(
     )
 
     assert response.data["user"] == {
-        "email": "олег@example.com",
-        "display_name": "Олег Петров",
-        "avatar": "https://example.com/avatar/oleg.jpg",
+        "email": "user@example.com",
+        "display_name": "Имя Фамилия",
+        "avatar": "https://example.com/avatar/user.jpg",
     }
 
 
@@ -110,7 +110,7 @@ def test_google_auth_returns_400_for_invalid_token(
 def test_token_refresh_returns_new_access_token_for_valid_refresh_token(
     api_client: APIClient,
 ) -> None:
-    user = UserFactory.create(email="ирина@example.com")
+    user = UserFactory.create(email="user@example.com")
     refresh = RefreshToken.for_user(user)
 
     response = api_client.post(
@@ -124,7 +124,7 @@ def test_token_refresh_returns_new_access_token_for_valid_refresh_token(
 def test_token_refresh_returns_a_different_refresh_token_due_to_rotation(
     api_client: APIClient,
 ) -> None:
-    user = UserFactory.create(email="жанна@example.com")
+    user = UserFactory.create(email="user@example.com")
     old_refresh = str(RefreshToken.for_user(user))
 
     response = api_client.post(
@@ -138,7 +138,7 @@ def test_token_refresh_returns_a_different_refresh_token_due_to_rotation(
 def test_token_refresh_rejects_reused_refresh_token_after_rotation(
     api_client: APIClient,
 ) -> None:
-    user = UserFactory.create(email="святослав@example.com")
+    user = UserFactory.create(email="user@example.com")
     old_refresh = str(RefreshToken.for_user(user))
     api_client.post(reverse("token-refresh"), {"refresh": old_refresh}, format="json")
 
@@ -164,7 +164,7 @@ def test_token_refresh_returns_401_for_an_invalid_refresh_token(
 def test_token_verify_returns_200_for_a_valid_access_token(
     api_client: APIClient,
 ) -> None:
-    user = UserFactory.create(email="тарас@example.com")
+    user = UserFactory.create(email="user@example.com")
     access = str(RefreshToken.for_user(user).access_token)
 
     response = api_client.post(
@@ -178,7 +178,7 @@ def test_token_verify_returns_200_for_a_valid_access_token(
 def test_token_verify_returns_401_for_an_expired_access_token(
     api_client: APIClient,
 ) -> None:
-    user = UserFactory.create(email="богдана@example.com")
+    user = UserFactory.create(email="user@example.com")
     access = RefreshToken.for_user(user).access_token
     access.set_exp(lifetime=timedelta(seconds=-1))
 
@@ -195,6 +195,88 @@ def test_token_verify_returns_401_for_a_malformed_token(
 ) -> None:
     response = api_client.post(
         reverse("token-verify"), {"token": "не-настоящий-токен"}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_me_returns_the_authenticated_users_profile(api_client: APIClient) -> None:
+    user = UserFactory.create(
+        email="user@example.com",
+        first_name="Имя",
+        last_name="Фамилия",
+        avatar="https://example.com/avatar/user.jpg",
+    )
+    access = str(RefreshToken.for_user(user).access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+    response = api_client.get(reverse("auth-me"))
+
+    assert response.data == {
+        "email": "user@example.com",
+        "display_name": "Имя Фамилия",
+        "avatar": "https://example.com/avatar/user.jpg",
+    }
+
+
+@pytest.mark.django_db
+def test_me_returns_401_for_an_unauthenticated_request(api_client: APIClient) -> None:
+    response = api_client.get(reverse("auth-me"))
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_logout_returns_204(api_client: APIClient) -> None:
+    user = UserFactory.create(email="user@example.com")
+    refresh = RefreshToken.for_user(user)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+    response = api_client.post(
+        reverse("auth-logout"), {"refresh": str(refresh)}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_logout_returns_401_for_an_unauthenticated_request(
+    api_client: APIClient,
+) -> None:
+    response = api_client.post(
+        reverse("auth-logout"), {"refresh": "не-настоящий-токен"}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_logout_returns_401_for_a_malformed_refresh_token(
+    api_client: APIClient,
+) -> None:
+    user = UserFactory.create(email="user@example.com")
+    access = str(RefreshToken.for_user(user).access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+    response = api_client.post(
+        reverse("auth-logout"), {"refresh": "не-настоящий-токен"}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_token_refresh_returns_401_after_the_token_was_blacklisted_via_logout(
+    api_client: APIClient,
+) -> None:
+    user = UserFactory.create(email="user@example.com")
+    refresh = RefreshToken.for_user(user)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    api_client.post(reverse("auth-logout"), {"refresh": str(refresh)}, format="json")
+
+    response = api_client.post(
+        reverse("token-refresh"), {"refresh": str(refresh)}, format="json"
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

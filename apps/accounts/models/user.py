@@ -34,3 +34,9 @@ class User(AbstractUser):
     REQUIRED_FIELDS: ClassVar[list[str]] = []
 
     objects = UserManager["User"]()  # type: ignore[misc, assignment]
+
+    @property
+    def display_name(self) -> str:
+        """Return the user's full name, falling back to their email prefix."""
+        full_name = f"{self.first_name} {self.last_name}".strip()
+        return full_name or self.email.split("@")[0]

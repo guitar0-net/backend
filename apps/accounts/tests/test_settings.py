@@ -30,6 +30,13 @@ def test_token_blacklist_app_is_installed() -> None:
     assert "rest_framework_simplejwt.token_blacklist" in settings.INSTALLED_APPS
 
 
+def test_jwt_authentication_is_registered_for_the_api() -> None:
+    assert (
+        "rest_framework_simplejwt.authentication.JWTAuthentication"
+        in settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]
+    )
+
+
 def test_google_client_id_setting_exists() -> None:
     assert hasattr(settings, "GOOGLE_CLIENT_ID")
 
