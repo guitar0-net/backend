@@ -27,6 +27,18 @@ errorlog = "-"  # stderr
 loglevel = os.getenv("GUNICORN_LOG_LEVEL", "info")
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
 
+# Put the level first so the error/boot log lines match the same
+# `{levelname} {message}` shape as Django's console formatter — the log
+# pipeline (Grafana Alloy) detects level by matching the start of the line.
+logconfig_dict = {
+    "formatters": {
+        "generic": {
+            "format": "{levelname} {asctime} [{process}] {message}",
+            "style": "{",
+        },
+    },
+}
+
 # Process naming
 proc_name = "guitar0-backend"
 
