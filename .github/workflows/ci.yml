@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Ruff lint
@@ -37,8 +41,14 @@ jobs:
       - name: Install dependencies
         run: pdm install --frozen-lockfile
 
+      - name: Ruff — format check
+        run: pdm run ruff format --check .
+
       - name: Ruff — lint checks
         run: pdm run ruff check .
+
+      - name: REUSE — license header compliance
+        run: pdm run license-check
 
   typecheck:
     name: Mypy type checking
@@ -104,6 +114,12 @@ jobs:
           sudo apt-get update && sudo apt-get install -y --no-install-recommends \
             libpango-1.0-0 libpangoft2-1.0-0 libpangocairo-1.0-0 \
             libcairo2 libgdk-pixbuf-2.0-0 shared-mime-info fonts-liberation
+
+      - name: Django — system checks
+        run: pdm run python manage.py check
+
+      - name: Django — no missing migrations
+        run: pdm run python manage.py makemigrations --check --dry-run
 
       - name: Run unit tests
         run: pdm run pytest --maxfail=1 --cov --cov-branch --cov-report=xml --cov-fail-under=90 -m "not integration"
