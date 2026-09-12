@@ -31,9 +31,12 @@ def test_token_blacklist_app_is_installed() -> None:
 
 
 def test_jwt_authentication_is_registered_for_the_api() -> None:
+    authentication_classes = settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]
+
+    assert isinstance(authentication_classes, list)
     assert (
         "rest_framework_simplejwt.authentication.JWTAuthentication"
-        in settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]
+        in authentication_classes
     )
 
 
