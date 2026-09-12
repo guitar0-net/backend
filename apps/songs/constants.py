@@ -22,3 +22,6 @@ class ChordOrientationChoice(models.TextChoices):
 
     HORIZONTAL = "horizontal", "Горизонтальный"
     VERTICAL = "vertical", "Вертикальный"
+
+
+SONG_PRINT_THROTTLE_SCOPE = "song_print"

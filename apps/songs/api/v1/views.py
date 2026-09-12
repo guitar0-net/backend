@@ -10,8 +10,10 @@ import uuid as uuid_module
 from django.http import Http404, HttpResponse
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from apps.songs.constants import SONG_PRINT_THROTTLE_SCOPE
 from apps.songs.pdf_renderer import PrintSettings, render_song_pdf
 from apps.songs.selectors import get_song_by_uuid
 from apps.songs.utils import transliterate_for_filename
@@ -25,6 +27,8 @@ class SongPrintView(APIView):
     """Generate and return a printable PDF for a song."""
 
     permission_classes = (AllowAny,)
+    throttle_classes = (ScopedRateThrottle,)
+    throttle_scope = SONG_PRINT_THROTTLE_SCOPE
 
     def post(self, request: Request, uuid: uuid_module.UUID) -> HttpResponse:  # noqa: PLR6301
         """Accept print settings and return the song as a PDF document."""
