@@ -89,6 +89,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "NUM_PROXIES": 1,
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -99,6 +100,7 @@ REST_FRAMEWORK = {
         # Each call verifies against Google Play/App Store Server API, so
         # this needs to be much stricter than the general anon rate.
         "donation_verify": "5/minute",
+        "song_print": "3/minute",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "config.pagination.GuitarPagination",

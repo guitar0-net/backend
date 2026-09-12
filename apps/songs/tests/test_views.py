@@ -10,13 +10,26 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+from rest_framework.throttling import ScopedRateThrottle
 
+from apps.songs.constants import SONG_PRINT_THROTTLE_SCOPE
 from apps.songs.tests.factories import SongFactory
 
 
 @pytest.fixture
 def api_client() -> APIClient:
     return APIClient()
+
+
+@pytest.fixture
+def print_rate_limit() -> int:
+    """Return how many prints a minute the configured scope allows."""
+    throttle = ScopedRateThrottle()
+    throttle.scope = SONG_PRINT_THROTTLE_SCOPE
+    allowed, _duration = throttle.parse_rate(throttle.get_rate())
+    if allowed is None:
+        pytest.fail("the song_print scope has no configured rate")
+    return allowed
 
 
 @pytest.mark.integration
@@ -146,3 +159,39 @@ def test_song_print_with_three_columns_returns_pdf(api_client: APIClient) -> Non
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_song_print_refuses_a_request_over_the_rate_limit(
+    api_client: APIClient, print_rate_limit: int
+) -> None:
+    url = reverse("song-print", kwargs={"uuid": uuid.uuid4()})
+    for _ in range(print_rate_limit):
+        api_client.post(url, data={}, format="json")
+
+    response = api_client.post(url, data={}, format="json")
+
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+@pytest.mark.django_db
+def test_song_print_counts_a_spoofed_forwarded_for_against_the_same_caller(
+    api_client: APIClient, print_rate_limit: int
+) -> None:
+    url = reverse("song-print", kwargs={"uuid": uuid.uuid4()})
+    for octet in range(print_rate_limit):
+        api_client.post(
+            url,
+            data={},
+            format="json",
+            headers={"x-forwarded-for": f"203.0.113.{octet + 1}, 10.0.0.7"},
+        )
+
+    response = api_client.post(
+        url,
+        data={},
+        format="json",
+        headers={"x-forwarded-for": "198.51.100.42, 10.0.0.7"},
+    )
+
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
