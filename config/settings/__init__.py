@@ -9,6 +9,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
+from django.urls import reverse_lazy
 
 from config.settings.logging import get_logging_config
 
@@ -80,6 +81,8 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
+MARKDOWNX_URLS_PATH = reverse_lazy("markdownx_markdownify")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

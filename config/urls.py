@@ -21,14 +21,21 @@ Including another URLconf
 
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import include, path
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from markdownx.views import MarkdownifyView  # type: ignore[import-untyped]
 
 urlpatterns = [
+    path(
+        "admin-guitar0/markdownx/markdownify/",
+        staff_member_required(MarkdownifyView.as_view()),
+        name="markdownx_markdownify",
+    ),
     path("admin-guitar0/", admin.site.urls),
     path("api/v1/", include("apps.accounts.api.v1.urls")),
     path("api/v1/", include("apps.chords.api.v1.urls")),
@@ -45,7 +52,6 @@ urlpatterns = [
         name="redoc",
     ),
     path("", include("apps.ops.urls")),
-    path("markdownx/", include("markdownx.urls")),
 ]
 
 if settings.DEBUG:
