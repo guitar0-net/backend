@@ -170,8 +170,27 @@ jobs:
         if: steps.bandit.outcome == 'failure'
         run: exit 1
 
-      - name: pip-audit — dependency CVE scan
-        run: pdm run audit
+      - name: Checkout base branch lock file
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .audit-base
+          sparse-checkout: |
+            pyproject.toml
+            pdm.lock
+          sparse-checkout-cone-mode: false
+
+      # pip-audit exits 1 whenever it finds anything, including advisories already on
+      # main; audit_diff.py decides, and fails on a missing report if pip-audit crashed.
+      - name: pip-audit — vulnerabilities introduced by this PR
+        run: |
+          pdm export --no-hashes -p .audit-base -o "$RUNNER_TEMP/base.txt"
+          pdm export --no-hashes -o "$RUNNER_TEMP/head.txt"
+          for side in base head; do
+            pdm run pip-audit -r "$RUNNER_TEMP/$side.txt" --no-deps --disable-pip \
+              -f json -o "$RUNNER_TEMP/$side.json" || true
+          done
+          pdm run python scripts/audit_diff.py "$RUNNER_TEMP/base.json" "$RUNNER_TEMP/head.json"
 
   docker-build:
     name: Docker Build
