@@ -4,10 +4,6 @@
 
 # Trivy vulnerability suppression file.
 #
-# Currently empty: every previous entry targeted the Debian Bookworm base of
-# python:3.14.4-slim and no longer matches anything since the image moved to
-# Debian 13 (trixie).
-#
 # When adding a suppression, keep the format:
 #   # <package>: <what the CVE is and why the risk is accepted>
 #   CVE-XXXX-YYYY exp:YYYY-MM-DD
@@ -15,3 +11,15 @@
 # Always set an expiry date so the suppression is revisited instead of
 # silently outliving the base image it was written for.
 # See: https://security-tracker.debian.org/tracker/
+
+# openssl (openssl, libssl3t64, openssl-provider-legacy): DTLS retransmission
+# out-of-bounds read; the container speaks TLS over TCP only, no DTLS
+CVE-2026-84782 exp:2026-11-01
+
+# openssl (openssl, libssl3t64, openssl-provider-legacy): QUIC stack ignores
+# connection-level flow control; no QUIC in the container, nginx terminates TLS
+CVE-2026-75804 exp:2026-11-01
+
+# libpcre2-8-0: JIT out-of-bounds write with an attacker-controlled pattern;
+# Python's re does not use PCRE2 and no user-supplied regex reaches it
+CVE-2026-103111 exp:2026-11-01
