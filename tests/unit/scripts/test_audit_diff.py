@@ -6,17 +6,18 @@ import json
 import secrets
 from pathlib import Path
 
+import pytest
+
 from scripts import audit_diff
-from scripts.audit_diff import Dependency
 
 
-def _report(directory: Path, dependencies: list[Dependency]) -> str:
+def _report(directory: Path, dependencies: list[audit_diff.Dependency]) -> str:
     path = directory / f"{secrets.token_hex(4)}.json"
     path.write_text(json.dumps({"dependencies": dependencies, "fixes": []}))
     return str(path)
 
 
-def _dependency(name: str, vuln_id: str, aliases: list[str]) -> Dependency:
+def _dependency(name: str, vuln_id: str, aliases: list[str]) -> audit_diff.Dependency:
     return {
         "name": name,
         "version": f"{secrets.randbelow(9)}.{secrets.randbelow(99)}",
@@ -54,3 +55,18 @@ def test_main_fails_when_known_vulnerability_appears_in_another_package(
     base = _report(tmp_path, [_dependency(f"α-{secrets.token_hex(3)}", vuln_id, [])])
     head = _report(tmp_path, [_dependency(f"β-{secrets.token_hex(3)}", vuln_id, [])])
     assert audit_diff.main([base, head]) == 1
+
+
+def test_main_passes_when_head_dependency_carries_no_vulnerabilities(
+    tmp_path: Path,
+) -> None:
+    head: list[audit_diff.Dependency] = [
+        {"name": f"пакет-{secrets.token_hex(3)}", "version": secrets.token_hex(2)}
+    ]
+    assert audit_diff.main([_report(tmp_path, []), _report(tmp_path, head)]) == 0
+
+
+def test_main_fails_when_a_report_is_missing(tmp_path: Path) -> None:
+    missing = str(tmp_path / f"отчёт-{secrets.token_hex(4)}.json")
+    with pytest.raises(FileNotFoundError):
+        audit_diff.main([missing, _report(tmp_path, [])])
