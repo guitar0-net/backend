@@ -81,20 +81,16 @@ def authenticate_via_google(id_token: str) -> tuple[User, bool]:
     if social_account is not None:
         return social_account.user, False
 
+    existing_user = get_user_by_email(email)
     try:
         with transaction.atomic():
-            user = get_user_by_email(email)
-            created = False
-            if user is None:
-                user = User.objects.create_user(
-                    email=email,
-                    password=None,
-                    first_name=claims.get("given_name", ""),
-                    last_name=claims.get("family_name", ""),
-                    avatar=claims.get("picture", ""),
-                )
-                created = True
-
+            user = existing_user or User.objects.create_user(
+                email=email,
+                password=None,
+                first_name=claims.get("given_name", ""),
+                last_name=claims.get("family_name", ""),
+                avatar=claims.get("picture", ""),
+            )
             SocialAccount.objects.create(
                 user=user,
                 provider=GOOGLE_PROVIDER,
@@ -111,7 +107,7 @@ def authenticate_via_google(id_token: str) -> tuple[User, bool]:
             raise
         return social_account.user, False
 
-    return user, created
+    return user, existing_user is None
 
 
 def blacklist_refresh_token(token: str) -> None:
