@@ -134,15 +134,17 @@ def _render_horizontal(chord: Chord, positions: list[ChordPosition]) -> str:  # 
     if chord.has_barre:
         bx = ml + (_FRETS - 1) * fret_w + fret_w // 2
         by = mt + gh // 2
-        elements.append(
-            f'<ellipse cx="{bx}" cy="{by}" rx="{_BARRE_THICKNESS}" '
-            f'ry="{gh // 2 + circle_r}" fill="{_FINGER_FILL[1]}"'
-            f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
-        )
-        elements.append(
-            f'<text x="{bx}" y="{by + 4}" text-anchor="middle" '
-            f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
-        )
+        elements.extend((
+            (
+                f'<ellipse cx="{bx}" cy="{by}" rx="{_BARRE_THICKNESS}" '
+                f'ry="{gh // 2 + circle_r}" fill="{_FINGER_FILL[1]}"'
+                f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
+            ),
+            (
+                f'<text x="{bx}" y="{by + 4}" text-anchor="middle" '
+                f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
+            ),
+        ))
 
     pos_map: dict[int, ChordPosition] = {p.string_number: p for p in positions}
 
@@ -244,15 +246,17 @@ def _render_vertical(chord: Chord, positions: list[ChordPosition]) -> str:  # no
     if chord.has_barre:
         barre_cy = mt + fret_h // 2
         bx = str_start + gw // 2
-        elements.append(
-            f'<ellipse cx="{bx}" cy="{barre_cy}" rx="{gw // 2 + circle_r}" '
-            f'ry="{_BARRE_THICKNESS}" fill="{_FINGER_FILL[1]}"'
-            f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
-        )
-        elements.append(
-            f'<text x="{bx}" y="{barre_cy + 4}" text-anchor="middle" '
-            f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
-        )
+        elements.extend((
+            (
+                f'<ellipse cx="{bx}" cy="{barre_cy}" rx="{gw // 2 + circle_r}" '
+                f'ry="{_BARRE_THICKNESS}" fill="{_FINGER_FILL[1]}"'
+                f' stroke="{_FINGER_STROKE[1]}" stroke-width="0.5"/>'
+            ),
+            (
+                f'<text x="{bx}" y="{barre_cy + 4}" text-anchor="middle" '
+                f'font-size="9" fill="{_FINGER_STROKE[1]}">1</text>'
+            ),
+        ))
 
     # Open/muted markers above the nut
     pos_map: dict[int, ChordPosition] = {p.string_number: p for p in positions}

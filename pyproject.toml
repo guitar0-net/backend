@@ -112,7 +112,9 @@ extend-select = [
 ignore = [
     "D203", "D213", "D406", "D407", "D413", # docs black lines, etc.
     "RUF001", # every import on a new line
-    "RUF002"  # cyrillic symbols, which have the same view, as latin
+    "RUF002", # cyrillic symbols, which have the same view, as latin
+    "RUF105", # suppressions stay `noqa`, not `ruff: ignore`
+    "RUF201"  # rule codes, not names, in this config
 ]
 unfixable = ["F401"] # don't remove import without using
 
