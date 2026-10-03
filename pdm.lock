@@ -496,7 +496,7 @@ files = [
 
 [[package]]
 name = "commitizen"
-version = "4.19.0"
+version = "4.19.1"
 requires_python = "<4.0,>=3.10"
 summary = "Python commitizen client tool"
 groups = ["dev"]
@@ -517,8 +517,8 @@ dependencies = [
     "typing-extensions<5.0.0,>=4.0.1; python_full_version < \"3.11\"",
 ]
 files = [
-    {file = "commitizen-4.19.0-py3-none-any.whl", hash = "sha256:ab17bc6578b6f12bb8ea827197bf899fdf0dd3c5874180023656c40e22f838c1"},
-    {file = "commitizen-4.19.0.tar.gz", hash = "sha256:9ed44eea06b5886462c30292a30c389330215e8fa79bcf932dbc4126b11009ef"},
+    {file = "commitizen-4.19.1-py3-none-any.whl", hash = "sha256:314196d4e7309d6706ff5d594cd4114eea262bcb3f3e39ad67be01aa162e72d6"},
+    {file = "commitizen-4.19.1.tar.gz", hash = "sha256:a98fa17604b2b3777da4a3e23935e9c897dbe4821570ecffa66818d41d86c729"},
 ]
 
 [[package]]
@@ -2623,14 +2623,14 @@ files = [
 
 [[package]]
 name = "tzdata"
-version = "2026.4"
+version = "2026.5"
 requires_python = ">=2"
 summary = "Provider of IANA time zone data"
 groups = ["default", "dev", "test"]
 marker = "sys_platform == \"win32\" or platform_system == \"Windows\""
 files = [
-    {file = "tzdata-2026.4-py2.py3-none-any.whl", hash = "sha256:c2169a8b0a7a5e9674da5a135ccdfb2b3e671b333ed9fed17b41f73c34476e81"},
-    {file = "tzdata-2026.4.tar.gz", hash = "sha256:f1b8bd365d8d210c55353f4d7f8d6d8561c0ba50d704b700d195a9424bba0d79"},
+    {file = "tzdata-2026.5-py2.py3-none-any.whl", hash = "sha256:b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac"},
+    {file = "tzdata-2026.5.tar.gz", hash = "sha256:8cc73c0a0bfca7dbfa59235d60b2eff82231dee33f53d206db1acd9173cfc0a7"},
 ]
 
 [[package]]
