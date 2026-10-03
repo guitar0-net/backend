@@ -45,7 +45,7 @@ jobs:
         run: pdm run ruff format --check .
 
       - name: Ruff — lint checks
-        run: pdm run ruff check .
+        run: pdm run ruff check --no-fix .
 
       - name: REUSE — license header compliance
         run: pdm run license-check
