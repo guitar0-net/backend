@@ -5,7 +5,7 @@
 import pytest
 from django.test import Client
 from django.urls import resolve, reverse
-from pytest_django.fixtures import SettingsWrapper
+from pytest_django import Settings
 from rest_framework import status
 
 from apps.accounts.models.user import User
@@ -35,7 +35,7 @@ def test_markdownx_markdownify_turns_an_anonymous_caller_away() -> None:
 @pytest.mark.django_db
 def test_markdownx_markdownify_renders_for_staff(
     staff_user: User,
-    settings: SettingsWrapper,
+    settings: Settings,
 ) -> None:
     settings.MARKDOWNX_MARKDOWN_EXTENSIONS = []
     client = Client()
@@ -63,7 +63,7 @@ def test_markdownx_markdownify_turns_a_signed_in_non_staff_caller_away(
 
 
 def test_the_markdown_editor_points_at_the_markdownify_route(
-    settings: SettingsWrapper,
+    settings: Settings,
 ) -> None:
     resolved = resolve(str(settings.MARKDOWNX_URLS_PATH))
 
