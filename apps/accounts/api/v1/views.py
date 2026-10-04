@@ -30,6 +30,7 @@ from .serializers.google_auth_response_serializer import (
     GoogleAuthResponseSerializer,
 )
 from .serializers.logout_request_serializer import LogoutRequestSerializer
+from .serializers.token_refresh_serializer import RefreshTokenSerializer
 from .serializers.user_profile_serializer import UserProfileSerializer
 
 logger = logging.getLogger("accounts")
@@ -83,6 +84,8 @@ class GoogleAuthView(APIView):
 
 class RefreshTokenView(TokenRefreshView):
     """Rotate a refresh token for a new access/refresh pair."""
+
+    serializer_class = RefreshTokenSerializer
 
 
 class VerifyTokenView(TokenVerifyView):

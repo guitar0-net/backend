@@ -175,6 +175,22 @@ def test_token_refresh_returns_401_for_an_invalid_refresh_token(
 
 
 @pytest.mark.django_db
+def test_token_refresh_ignores_an_expired_access_token_in_the_header(
+    api_client: APIClient,
+) -> None:
+    refresh = RefreshToken.for_user(UserFactory.create(email="просрочен@example.com"))
+    access = refresh.access_token
+    access.set_exp(lifetime=timedelta(seconds=-1))
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+    response = api_client.post(
+        reverse("token-refresh"), {"refresh": str(refresh)}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_token_verify_returns_200_for_a_valid_access_token(
     api_client: APIClient,
 ) -> None:
@@ -273,6 +289,21 @@ def test_token_refresh_returns_401_after_the_account_was_deleted(
 
     response = api_client.post(
         reverse("token-refresh"), {"refresh": str(refresh)}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_token_refresh_returns_401_for_a_token_that_outlived_its_user(
+    api_client: APIClient,
+) -> None:
+    user = UserFactory.create(email="удалённый-админом@example.com")
+    refresh = str(RefreshToken.for_user(user))
+    user.delete()
+
+    response = api_client.post(
+        reverse("token-refresh"), {"refresh": refresh}, format="json"
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
