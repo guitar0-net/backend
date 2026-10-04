@@ -242,6 +242,57 @@ def test_me_returns_401_for_an_unauthenticated_request(api_client: APIClient) ->
 
 
 @pytest.mark.django_db
+def test_me_delete_returns_204(api_client: APIClient) -> None:
+    user = UserFactory.create(email="уходящий@example.com")
+    access = str(RefreshToken.for_user(user).access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+    response = api_client.delete(reverse("auth-me"))
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_me_delete_returns_401_for_an_unauthenticated_request(
+    api_client: APIClient,
+) -> None:
+    response = api_client.delete(reverse("auth-me"))
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_token_refresh_returns_401_after_the_account_was_deleted(
+    api_client: APIClient,
+) -> None:
+    user = UserFactory.create(email="бывший@example.com")
+    refresh = RefreshToken.for_user(user)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    api_client.delete(reverse("auth-me"))
+    api_client.credentials()
+
+    response = api_client.post(
+        reverse("token-refresh"), {"refresh": str(refresh)}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_me_returns_401_with_an_access_token_of_a_deleted_account(
+    api_client: APIClient,
+) -> None:
+    user = UserFactory.create(email="исчезнувший@example.com")
+    access = str(RefreshToken.for_user(user).access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+    api_client.delete(reverse("auth-me"))
+
+    response = api_client.get(reverse("auth-me"))
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
 def test_logout_returns_204(api_client: APIClient) -> None:
     user = UserFactory.create(email="user@example.com")
     refresh = RefreshToken.for_user(user)
@@ -332,6 +383,14 @@ def test_schema_documents_me_response_as_user_profile(api_client: APIClient) -> 
     assert response.json()["paths"][reverse("auth-me")]["get"]["responses"]["200"][
         "content"
     ]["application/json"]["schema"] == {"$ref": "#/components/schemas/UserProfile"}
+
+
+def test_schema_documents_me_deletion_as_returning_no_content(
+    api_client: APIClient,
+) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert "204" in response.json()["paths"][reverse("auth-me")]["delete"]["responses"]
 
 
 def test_schema_documents_logout_as_returning_no_content(api_client: APIClient) -> None:
