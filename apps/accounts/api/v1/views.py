@@ -6,6 +6,7 @@
 
 import logging
 
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
@@ -22,12 +23,25 @@ from apps.accounts.services import (
 )
 
 from .serializers.google_auth_request_serializer import GoogleAuthRequestSerializer
+from .serializers.google_auth_response_serializer import (
+    GoogleAuthPayload,
+    GoogleAuthResponseSerializer,
+)
 from .serializers.logout_request_serializer import LogoutRequestSerializer
 from .serializers.user_profile_serializer import UserProfileSerializer
 
 logger = logging.getLogger("accounts")
 
 
+@extend_schema(
+    request=GoogleAuthRequestSerializer,
+    responses={
+        status.HTTP_200_OK: GoogleAuthResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+            description="Missing `id_token`, or the token failed verification."
+        ),
+    },
+)
 class GoogleAuthView(APIView):
     """Exchange a Google ID token for a JWT access/refresh pair."""
 
@@ -47,11 +61,13 @@ class GoogleAuthView(APIView):
             return Response({"detail": "Invalid or expired Google token."}, status=400)
 
         refresh = RefreshToken.for_user(user)
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": UserProfileSerializer(user).data,
-        })
+        return Response(
+            GoogleAuthResponseSerializer(
+                GoogleAuthPayload(
+                    access=str(refresh.access_token), refresh=str(refresh), user=user
+                )
+            ).data
+        )
 
 
 class RefreshTokenView(TokenRefreshView):
@@ -62,6 +78,7 @@ class VerifyTokenView(TokenVerifyView):
     """Verify that a JWT access token is valid."""
 
 
+@extend_schema(responses={status.HTTP_200_OK: UserProfileSerializer})
 class MeView(APIView):
     """Return the authenticated user's own profile."""
 
@@ -75,6 +92,10 @@ class MeView(APIView):
         return Response(UserProfileSerializer(request.user).data)
 
 
+@extend_schema(
+    request=LogoutRequestSerializer,
+    responses={status.HTTP_204_NO_CONTENT: None},
+)
 class LogoutView(APIView):
     """Blacklist a refresh token, ending the associated session."""
 

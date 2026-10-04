@@ -280,3 +280,39 @@ def test_token_refresh_returns_401_after_the_token_was_blacklisted_via_logout(
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_schema_documents_google_auth_success_response(api_client: APIClient) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert response.json()["paths"][reverse("auth-google")]["post"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/GoogleAuthResponse"
+    }
+
+
+def test_schema_documents_google_auth_bad_request_response(
+    api_client: APIClient,
+) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert (
+        "400" in response.json()["paths"][reverse("auth-google")]["post"]["responses"]
+    )
+
+
+def test_schema_documents_me_response_as_user_profile(api_client: APIClient) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert response.json()["paths"][reverse("auth-me")]["get"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"] == {"$ref": "#/components/schemas/UserProfile"}
+
+
+def test_schema_documents_logout_as_returning_no_content(api_client: APIClient) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert (
+        "204" in response.json()["paths"][reverse("auth-logout")]["post"]["responses"]
+    )
