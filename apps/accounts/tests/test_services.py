@@ -10,17 +10,23 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError
 from google.auth import exceptions as google_auth_exceptions
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.accounts.models.social_account import SocialAccount
+from apps.accounts.models.user import User
 from apps.accounts.selectors import get_social_account as real_get_social_account
 from apps.accounts.services import (
     InvalidGoogleTokenError,
     StaffAccountNotAllowedError,
     authenticate_via_google,
+    delete_account,
     verify_google_id_token,
 )
 from apps.accounts.tests.factories.social_account import SocialAccountFactory
 from apps.accounts.tests.factories.user import UserFactory
+from apps.donations.models import Purchase
+from apps.donations.tests.factories import PurchaseFactory
 
 
 def _stub_claims(
@@ -281,3 +287,52 @@ def test_authenticate_via_google_reraises_integrity_error_without_a_winner(
 
     with pytest.raises(IntegrityError):
         authenticate_via_google("stub-token")
+
+
+@pytest.mark.django_db
+def test_delete_account_removes_the_user() -> None:
+    user = UserFactory.create(email="удаляемый@example.com")
+
+    delete_account(user)
+
+    assert not User.objects.filter(email="удаляемый@example.com").exists()
+
+
+@pytest.mark.django_db
+def test_delete_account_blacklists_the_users_refresh_tokens() -> None:
+    user = UserFactory.create(email="сессия@example.com")
+    refresh = RefreshToken.for_user(user)
+
+    delete_account(user)
+
+    assert BlacklistedToken.objects.filter(token__jti=refresh["jti"]).exists()
+
+
+@pytest.mark.django_db
+def test_delete_account_succeeds_when_a_token_is_already_blacklisted() -> None:
+    user = UserFactory.create(email="вышедший@example.com")
+    RefreshToken.for_user(user).blacklist()
+    RefreshToken.for_user(user)
+
+    delete_account(user)
+
+    assert not User.objects.filter(email="вышедший@example.com").exists()
+
+
+@pytest.mark.django_db
+def test_delete_account_removes_the_users_social_accounts() -> None:
+    account = SocialAccountFactory.create(provider_uid="uid-Ё-delete")
+
+    delete_account(account.user)
+
+    assert not SocialAccount.objects.filter(provider_uid="uid-Ё-delete").exists()
+
+
+@pytest.mark.django_db
+def test_delete_account_keeps_the_users_purchases_without_an_owner() -> None:
+    user = UserFactory.create(email="донатер@example.com")
+    purchase = PurchaseFactory.create(user=user, store_transaction_id="транзакция-1")
+
+    delete_account(user)
+
+    assert Purchase.objects.get(pk=purchase.pk).user is None

@@ -13,11 +13,16 @@ from google.auth import exceptions as google_auth_exceptions
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.accounts.models.social_account import SocialAccount
 from apps.accounts.models.user import User
-from apps.accounts.selectors import get_social_account, get_user_by_email
+from apps.accounts.selectors import (
+    get_active_refresh_tokens,
+    get_social_account,
+    get_user_by_email,
+)
 
 GOOGLE_PROVIDER = "google-oauth2"
 
@@ -144,3 +149,24 @@ def blacklist_refresh_token(token: str) -> None:
         RefreshToken(token).blacklist()  # type: ignore[arg-type]
     except TokenError as exc:
         raise InvalidToken from exc
+
+
+def delete_account(user: User) -> None:
+    """Permanently delete a user and end all of their sessions.
+
+    Every outstanding refresh token is blacklisted first, so a stolen or
+    forgotten refresh token cannot outlive the account. Social accounts are
+    removed by cascade; purchases keep their rows with the user cleared.
+
+    Args:
+        user: The user to delete.
+    """
+    with transaction.atomic():
+        BlacklistedToken.objects.bulk_create(
+            [
+                BlacklistedToken(token=token)
+                for token in get_active_refresh_tokens(user)
+            ],
+            ignore_conflicts=True,
+        )
+        user.delete()

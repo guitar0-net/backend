@@ -4,6 +4,9 @@
 
 """Selectors for the accounts app."""
 
+from django.db.models import QuerySet
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+
 from apps.accounts.models.social_account import SocialAccount
 from apps.accounts.models.user import User
 
@@ -36,3 +39,15 @@ def get_social_account(provider: str, provider_uid: str) -> SocialAccount | None
         .select_related("user")
         .first()
     )
+
+
+def get_active_refresh_tokens(user: User) -> QuerySet[OutstandingToken]:
+    """Get the user's issued refresh tokens that are not blacklisted yet.
+
+    Args:
+        user: The owner of the tokens.
+
+    Returns:
+        QuerySet[OutstandingToken]: Tokens that can still be used to refresh.
+    """
+    return OutstandingToken.objects.filter(user=user, blacklistedtoken__isnull=True)

@@ -21,6 +21,7 @@ from apps.accounts.services import (
     StaffAccountNotAllowedError,
     authenticate_via_google,
     blacklist_refresh_token,
+    delete_account,
 )
 
 from .serializers.google_auth_request_serializer import GoogleAuthRequestSerializer
@@ -88,18 +89,25 @@ class VerifyTokenView(TokenVerifyView):
     """Verify that a JWT access token is valid."""
 
 
-@extend_schema(responses={status.HTTP_200_OK: UserProfileSerializer})
 class MeView(APIView):
-    """Return the authenticated user's own profile."""
+    """Return or delete the authenticated user's own account."""
 
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(responses={status.HTTP_200_OK: UserProfileSerializer})
     def get(self, request: Request) -> Response:  # noqa: PLR6301
         """Return the requesting user's profile fields."""
         # IsAuthenticated has already run by this point, so request.user is
         # a real User, never AnonymousUser.
         assert isinstance(request.user, User)
         return Response(UserProfileSerializer(request.user).data)
+
+    @extend_schema(responses={status.HTTP_204_NO_CONTENT: None})
+    def delete(self, request: Request) -> Response:  # noqa: PLR6301
+        """Delete the requesting user's account."""
+        assert isinstance(request.user, User)
+        delete_account(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(
