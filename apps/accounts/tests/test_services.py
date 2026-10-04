@@ -4,6 +4,8 @@
 
 """Tests for accounts services."""
 
+import contextlib
+
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError
@@ -13,6 +15,7 @@ from apps.accounts.models.social_account import SocialAccount
 from apps.accounts.selectors import get_social_account as real_get_social_account
 from apps.accounts.services import (
     InvalidGoogleTokenError,
+    StaffAccountNotAllowedError,
     authenticate_via_google,
     verify_google_id_token,
 )
@@ -150,6 +153,53 @@ def test_authenticate_via_google_raises_on_unverified_email(
 
     with pytest.raises(InvalidGoogleTokenError):
         authenticate_via_google("stub-token")
+
+
+@pytest.mark.django_db
+def test_authenticate_via_google_refuses_to_link_a_staff_user_by_email(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    UserFactory.create(email="сотрудник@example.com", is_staff=True)
+    _stub_claims(monkeypatch, sub="97531", email="сотрудник@example.com")
+
+    with pytest.raises(StaffAccountNotAllowedError):
+        authenticate_via_google("stub-token")
+
+
+@pytest.mark.django_db
+def test_authenticate_via_google_refuses_to_link_a_superuser_by_email(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    UserFactory.create(email="админ@example.com", is_superuser=True)
+    _stub_claims(monkeypatch, sub="86420", email="админ@example.com")
+
+    with pytest.raises(StaffAccountNotAllowedError):
+        authenticate_via_google("stub-token")
+
+
+@pytest.mark.django_db
+def test_authenticate_via_google_refuses_a_staff_user_with_a_linked_social_account(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    staff = UserFactory.create(email="повышенный@example.com", is_staff=True)
+    SocialAccountFactory.create(user=staff, provider_uid="75319")
+    _stub_claims(monkeypatch, sub="75319", email="другой@example.com")
+
+    with pytest.raises(StaffAccountNotAllowedError):
+        authenticate_via_google("stub-token")
+
+
+@pytest.mark.django_db
+def test_authenticate_via_google_does_not_link_a_social_account_to_a_staff_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    UserFactory.create(email="сотрудница@example.com", is_staff=True)
+    _stub_claims(monkeypatch, sub="64208", email="сотрудница@example.com")
+
+    with contextlib.suppress(StaffAccountNotAllowedError):
+        authenticate_via_google("stub-token")
+
+    assert not SocialAccount.objects.filter(provider_uid="64208").exists()
 
 
 def test_verify_google_id_token_raises_when_client_id_not_configured(

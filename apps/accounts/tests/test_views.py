@@ -107,6 +107,20 @@ def test_google_auth_returns_400_for_invalid_token(
 
 
 @pytest.mark.django_db
+def test_google_auth_returns_403_when_the_email_belongs_to_a_staff_user(
+    api_client: APIClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    UserFactory.create(email="сотрудник@example.com", is_staff=True)
+    _stub_claims(monkeypatch, email="сотрудник@example.com")
+
+    response = api_client.post(
+        reverse("auth-google"), {"id_token": "stub-token"}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
 def test_token_refresh_returns_new_access_token_for_valid_refresh_token(
     api_client: APIClient,
 ) -> None:
@@ -299,6 +313,16 @@ def test_schema_documents_google_auth_bad_request_response(
 
     assert (
         "400" in response.json()["paths"][reverse("auth-google")]["post"]["responses"]
+    )
+
+
+def test_schema_documents_google_auth_forbidden_response(
+    api_client: APIClient,
+) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert (
+        "403" in response.json()["paths"][reverse("auth-google")]["post"]["responses"]
     )
 
 

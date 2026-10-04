@@ -26,6 +26,10 @@ class InvalidGoogleTokenError(Exception):
     """Raised when a Google ID token fails verification."""
 
 
+class StaffAccountNotAllowedError(Exception):
+    """Raised when a Google sign-in resolves to a staff or superuser account."""
+
+
 def verify_google_id_token(id_token: str) -> dict[str, Any]:
     """Verify a Google ID token and return its claims.
 
@@ -59,6 +63,11 @@ def verify_google_id_token(id_token: str) -> dict[str, Any]:
 def authenticate_via_google(id_token: str) -> tuple[User, bool]:
     """Find or create a user from a verified Google ID token.
 
+    Staff and superusers are refused: they sign in to the admin with email and
+    password only. Otherwise a Google account sharing a staff email would be
+    linked to that staff user and receive JWTs for it, which turns into
+    privilege escalation the moment any staff-only endpoint accepts JWTs.
+
     Args:
         id_token: The raw Google ID token from the client.
 
@@ -68,6 +77,8 @@ def authenticate_via_google(id_token: str) -> tuple[User, bool]:
     Raises:
         InvalidGoogleTokenError: If the token is invalid, expired, or its
             email is not verified by Google.
+        StaffAccountNotAllowedError: If the Google identity or its email
+            belongs to a staff or superuser account.
     """
     claims = verify_google_id_token(id_token)
     if not claims.get("email_verified"):
@@ -79,9 +90,12 @@ def authenticate_via_google(id_token: str) -> tuple[User, bool]:
 
     social_account = get_social_account(GOOGLE_PROVIDER, sub)
     if social_account is not None:
+        _reject_staff(social_account.user)
         return social_account.user, False
 
     existing_user = get_user_by_email(email)
+    if existing_user is not None:
+        _reject_staff(existing_user)
     try:
         with transaction.atomic():
             user = existing_user or User.objects.create_user(
@@ -108,6 +122,11 @@ def authenticate_via_google(id_token: str) -> tuple[User, bool]:
         return social_account.user, False
 
     return user, existing_user is None
+
+
+def _reject_staff(user: User) -> None:
+    if user.is_staff or user.is_superuser:
+        raise StaffAccountNotAllowedError
 
 
 def blacklist_refresh_token(token: str) -> None:
