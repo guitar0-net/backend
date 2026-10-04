@@ -155,7 +155,9 @@ def delete_account(user: User) -> None:
     """Permanently delete a user and end all of their sessions.
 
     Every outstanding refresh token is blacklisted first, so a stolen or
-    forgotten refresh token cannot outlive the account. Social accounts are
+    forgotten refresh token stops working with the account. A refresh racing
+    this deletion can still store a rotated token, but the refresh endpoint
+    refuses it once the user is gone. Social accounts are
     removed by cascade; purchases keep their rows with the user cleared.
 
     Args:
