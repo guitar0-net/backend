@@ -18,6 +18,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from apps.accounts.models.user import User
 from apps.accounts.services import (
     InvalidGoogleTokenError,
+    StaffAccountNotAllowedError,
     authenticate_via_google,
     blacklist_refresh_token,
 )
@@ -40,6 +41,9 @@ logger = logging.getLogger("accounts")
         status.HTTP_400_BAD_REQUEST: OpenApiResponse(
             description="Missing `id_token`, or the token failed verification."
         ),
+        status.HTTP_403_FORBIDDEN: OpenApiResponse(
+            description="The Google account resolves to a staff or superuser."
+        ),
     },
 )
 class GoogleAuthView(APIView):
@@ -59,6 +63,12 @@ class GoogleAuthView(APIView):
         except InvalidGoogleTokenError:
             logger.info("Rejected invalid Google ID token")
             return Response({"detail": "Invalid or expired Google token."}, status=400)
+        except StaffAccountNotAllowedError:
+            logger.warning("Refused Google sign-in for a staff account")
+            return Response(
+                {"detail": "Staff accounts cannot sign in with Google."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         refresh = RefreshToken.for_user(user)
         return Response(
