@@ -48,10 +48,4 @@ EXCLUDED_PATHS: frozenset[str] = frozenset({
 })
 
 
-_UUID_PATTERN = (
-    r"/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/?"
-)
-PATH_NORMALIZATION_PATTERNS: tuple[tuple[str, str], ...] = (
-    (_UUID_PATTERN, "/{uuid}/"),
-    (r"/\d+/?", "/{id}/"),
-)
+UNMATCHED_ENDPOINT = "<unmatched>"

@@ -4,6 +4,9 @@
 
 """Integration tests for the ops application."""
 
+from random import randint
+from secrets import token_hex
+
 import pytest
 from django.test import Client
 
@@ -43,18 +46,25 @@ def test_metrics_endpoint_not_counted(client: Client) -> None:
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_path_normalization_in_metrics(client: Client) -> None:
-    """Test that numeric IDs are normalized in metrics labels."""
-    client.get("/api/v1/data/chords/1/")
-    client.get("/api/v1/data/chords/2/")
-    client.get("/api/v1/data/chords/999/")
+def test_metrics_label_requests_by_route(client: Client) -> None:
+    """Requests to one route share a label whatever the ID in the path."""
+    client.get(f"/api/v1/chords/{randint(1, 10**9)}/")
 
-    response = client.get("/metrics/")
-    content = response.content.decode("utf-8")
+    content = client.get("/metrics/").content.decode("utf-8")
 
-    assert "{id}" in content
-    assert 'endpoint="/api/v1/data/chords/1/"' not in content
-    assert 'endpoint="/api/v1/data/chords/2/"' not in content
+    assert 'endpoint="/api/v1/chords/<int:pk>/"' in content
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_metrics_label_requests_by_unknown_path_as_unmatched(client: Client) -> None:
+    """A path no route serves shares one label instead of naming the path."""
+    method = f"PROBE{token_hex(4).upper()}"
+    client.generic(method, f"/wp-includes/{token_hex(6)}-скан.php")
+
+    content = client.get("/metrics/").content.decode("utf-8")
+
+    assert f'endpoint="<unmatched>",method="{method}"' in content
 
 
 @pytest.mark.integration

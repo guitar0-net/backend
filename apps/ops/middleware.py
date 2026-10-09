@@ -4,14 +4,13 @@
 
 """Prometheus middleware for HTTP metrics collection."""
 
-import re
 import time
 from collections.abc import Callable
 
 from django.http import HttpRequest
 from django.http.response import HttpResponseBase
 
-from .constants import EXCLUDED_PATHS, PATH_NORMALIZATION_PATTERNS
+from .constants import EXCLUDED_PATHS, UNMATCHED_ENDPOINT
 
 
 class PrometheusMiddleware:
@@ -37,10 +36,6 @@ class PrometheusMiddleware:
             get_response: The next middleware or view in the chain.
         """
         self.get_response = get_response
-        self._compiled_patterns: list[tuple[re.Pattern[str], str]] = [
-            (re.compile(pattern), replacement)
-            for pattern, replacement in PATH_NORMALIZATION_PATTERNS
-        ]
 
     def __call__(self, request: HttpRequest) -> "HttpResponseBase":
         """Process the request and collect metrics.
@@ -56,7 +51,7 @@ class PrometheusMiddleware:
         if self._should_exclude(path):
             return self.get_response(request)
 
-        return self._process_request_with_metrics(request, path)
+        return self._process_request_with_metrics(request)
 
     def _should_exclude(self, path: str) -> bool:  # noqa: PLR6301
         """Check if the path should be excluded from metrics.
@@ -69,29 +64,41 @@ class PrometheusMiddleware:
         """
         return any(path.startswith(p) for p in EXCLUDED_PATHS)
 
-    def _normalize_path(self, path: str) -> str:
-        """Normalize path to avoid high cardinality.
+    def _endpoint(self, request: HttpRequest) -> str:  # noqa: PLR6301
+        """Name the URL route that served the request.
 
-        Replaces numeric IDs and UUIDs with placeholders.
+        The label must stay bounded no matter what clients send: vulnerability
+        scanners probe thousands of made-up paths, and a series per path once
+        grew /metrics/ to tens of thousands of lines, long enough to make the
+        scrape time out. Every request no route served shares one label.
+
+        The route comes from ``request.resolver_match``, which Django's handler
+        sets once it dispatches the request, rather than from resolving the
+        path here: this middleware runs before the rest of the stack, so a
+        later middleware that swaps ``request.urlconf``, activates a language
+        for ``i18n_patterns`` or serves a fallback page would route the request
+        differently from a resolve against the root urlconf.
 
         Args:
-            path: The original request path.
+            request: The request, after the view chain has handled it.
 
         Returns:
-            The normalized path.
+            The route pattern, e.g. ``/api/v1/lessons/<uuid:uuid>/``, or
+            ``UNMATCHED_ENDPOINT``.
         """
-        for pattern, replacement in self._compiled_patterns:
-            path = pattern.sub(replacement, path)
-        return path
+        match = request.resolver_match
+        if match is None:
+            return UNMATCHED_ENDPOINT
+        return f"/{match.route}"
 
-    def _process_request_with_metrics(
-        self, request: HttpRequest, path: str
-    ) -> "HttpResponseBase":
+    def _process_request_with_metrics(self, request: HttpRequest) -> "HttpResponseBase":
         """Process request and record metrics.
+
+        ``http_requests_in_progress`` carries no endpoint label: it is raised
+        before the request is routed, when the route is not yet known.
 
         Args:
             request: The incoming HTTP request.
-            path: The request path.
 
         Returns:
             The HTTP response from the view.
@@ -106,14 +113,7 @@ class PrometheusMiddleware:
         )
 
         method = request.method or "UNKNOWN"
-        endpoint = self._normalize_path(path)
-
-        request_size = self._get_request_size(request)
-        http_request_size_bytes.labels(method=method, endpoint=endpoint).observe(
-            request_size
-        )
-
-        http_requests_in_progress.labels(method=method, endpoint=endpoint).inc()
+        http_requests_in_progress.labels(method=method).inc()
 
         start_time = time.perf_counter()
         status_code = 500
@@ -123,7 +123,7 @@ class PrometheusMiddleware:
             status_code = getattr(response, "status_code", 500)
         except Exception as e:
             http_exceptions_total.labels(
-                endpoint=endpoint,
+                endpoint=self._endpoint(request),
                 exception=e.__class__.__name__,
             ).inc()
             raise
@@ -131,14 +131,18 @@ class PrometheusMiddleware:
             return response
         finally:
             duration = time.perf_counter() - start_time
+            http_requests_in_progress.labels(method=method).dec()
 
+            endpoint = self._endpoint(request)
             http_requests_total.labels(
                 method=method, endpoint=endpoint, status_code=str(status_code)
             ).inc()
             http_request_duration_seconds.labels(
                 method=method, endpoint=endpoint
             ).observe(duration)
-            http_requests_in_progress.labels(method=method, endpoint=endpoint).dec()
+            http_request_size_bytes.labels(method=method, endpoint=endpoint).observe(
+                self._get_request_size(request)
+            )
 
             if response is not None:
                 response_size = self._get_response_size(response)
