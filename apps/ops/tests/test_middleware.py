@@ -4,9 +4,12 @@
 
 """Tests for the Prometheus middleware."""
 
+from secrets import token_hex
+
 import pytest
 from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
 from django.test import RequestFactory
+from django.urls import ResolverMatch
 
 from apps.ops.middleware import PrometheusMiddleware
 
@@ -14,6 +17,24 @@ from apps.ops.middleware import PrometheusMiddleware
 @pytest.fixture
 def request_factory() -> RequestFactory:
     return RequestFactory()
+
+
+def _view(request: HttpRequest) -> HttpResponse:
+    return HttpResponse()
+
+
+def _routed_to(route: str) -> PrometheusMiddleware:
+    """Middleware in front of a stub handler that dispatched to ``route``."""
+
+    def get_response(request: HttpRequest) -> HttpResponse:
+        request.resolver_match = ResolverMatch(_view, (), {}, route=route)
+        return HttpResponse("OK", status=200)
+
+    return PrometheusMiddleware(get_response)
+
+
+def _random_method() -> str:
+    return f"PROBE{token_hex(4).upper()}"
 
 
 @pytest.fixture
@@ -40,63 +61,55 @@ def test_middleware_excludes_metrics_path(
     assert response.status_code == 200
 
 
-def test_path_normalization_normalizes_numeric_ids(
-    middleware: PrometheusMiddleware,
+def test_middleware_labels_a_request_with_the_route_the_handler_dispatched_to(
+    request_factory: RequestFactory,
 ) -> None:
-    path = "/api/chords/123/"
-    normalized = middleware._normalize_path(path)
-    assert normalized == "/api/chords/{id}/"
+    from apps.ops.metrics import http_requests_total
+
+    route = f"гитара-{token_hex(4)}/<int:pk>/"
+    method = _random_method()
+    _routed_to(route)(request_factory.generic(method, f"/{token_hex(4)}/скан/"))
+
+    assert (
+        http_requests_total.labels(
+            method=method, endpoint=f"/{route}", status_code="200"
+        )._value.get()
+        == 1
+    )
 
 
-def test_path_normalization_normalizes_uuids(
-    middleware: PrometheusMiddleware,
-) -> None:
-    path = "/api/chords/550e8400-e29b-41d4-a716-446655440000/"
-    normalized = middleware._normalize_path(path)
-    assert normalized == "/api/chords/{uuid}/"
-
-
-def test_path_normalization_preserves_non_id_paths(
-    middleware: PrometheusMiddleware,
-) -> None:
-    path = "/api/chords/"
-    normalized = middleware._normalize_path(path)
-    assert normalized == "/api/chords/"
-
-
-def test_metrics_recording_increments_request_counter(
+def test_middleware_labels_every_request_no_route_served_alike(
     middleware: PrometheusMiddleware, request_factory: RequestFactory
 ) -> None:
     from apps.ops.metrics import http_requests_total
 
-    request = request_factory.get("/api/test/")
-    middleware(request)
+    method = _random_method()
+    for _ in range(5):
+        middleware(
+            request_factory.generic(method, f"/wp-admin/{token_hex(4)}-гитара.php")
+        )
 
-    sample_value = http_requests_total.labels(
-        method="GET", endpoint="/api/test/", status_code="200"
-    )._value.get()
+    assert (
+        http_requests_total.labels(
+            method=method, endpoint="<unmatched>", status_code="200"
+        )._value.get()
+        == 5
+    )
 
-    assert sample_value >= 1
 
+def test_metrics_recording_records_duration(request_factory: RequestFactory) -> None:
+    from apps.ops.metrics import http_request_duration_seconds
 
-def test_metrics_recording_records_duration(
-    middleware: PrometheusMiddleware, request_factory: RequestFactory
-) -> None:
-    from apps.ops.registry import get_registry
+    route = f"курсы-{token_hex(4)}/<uuid:uuid>/"
+    method = _random_method()
+    _routed_to(route)(request_factory.generic(method, f"/{token_hex(4)}/"))
 
-    request = request_factory.get("/api/duration/")
-    middleware(request)
-
-    registry = get_registry()
-    samples = list(registry.collect())
-
-    for metric_family in samples:
-        if metric_family.name == "guitar0_backend_http_request_duration_seconds":
-            for sample in metric_family.samples:
-                if sample.labels.get("endpoint") == "/api/duration/":
-                    assert True
-                    return
-    pytest.fail("No duration samples found for /api/duration/")
+    assert (
+        http_request_duration_seconds.labels(
+            method=method, endpoint=f"/{route}"
+        )._sum.get()
+        > 0
+    )
 
 
 def test_metrics_recording_tracks_in_progress_requests(
@@ -104,18 +117,10 @@ def test_metrics_recording_tracks_in_progress_requests(
 ) -> None:
     from apps.ops.metrics import http_requests_in_progress
 
-    initial_value = http_requests_in_progress.labels(
-        method="GET", endpoint="/api/progress/"
-    )._value.get()
+    method = _random_method()
+    middleware(request_factory.generic(method, f"/{token_hex(4)}-урок/"))
 
-    request = request_factory.get("/api/progress/")
-    middleware(request)
-
-    final_value = http_requests_in_progress.labels(
-        method="GET", endpoint="/api/progress/"
-    )._value.get()
-
-    assert final_value == initial_value
+    assert http_requests_in_progress.labels(method=method)._value.get() == 0
 
 
 def test_request_size_records_from_header(request_factory: RequestFactory) -> None:
@@ -217,18 +222,18 @@ def test_exception_handling_records_exception_metric(
     class CustomError(Exception):
         pass
 
-    def get_response(request: HttpRequest) -> HttpResponse:
-        raise CustomError("Something went wrong")
+    route = f"аккорды-{token_hex(4)}/<int:pk>/"
 
-    middleware = PrometheusMiddleware(get_response)
-    request = request_factory.get("/api/error/")
+    def get_response(request: HttpRequest) -> HttpResponse:
+        request.resolver_match = ResolverMatch(_view, (), {}, route=route)
+        raise CustomError
 
     with pytest.raises(CustomError):
-        middleware(request)
+        PrometheusMiddleware(get_response)(request_factory.get(f"/{token_hex(4)}/"))
 
-    sample_value = http_exceptions_total.labels(
-        endpoint="/api/error/",
-        exception="CustomError",
-    )._value.get()
-
-    assert sample_value >= 1
+    assert (
+        http_exceptions_total.labels(
+            endpoint=f"/{route}", exception="CustomError"
+        )._value.get()
+        == 1
+    )

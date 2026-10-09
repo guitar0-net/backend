@@ -29,7 +29,7 @@ http_request_duration_seconds = Histogram(
 http_requests_in_progress = Gauge(
     name=f"{METRIC_PREFIX}http_requests_in_progress",
     documentation="Number of HTTP requests currently in progress.",
-    labelnames=["method", "endpoint"],
+    labelnames=["method"],
     registry=get_registry(),
     multiprocess_mode="livesum",
 )
