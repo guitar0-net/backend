@@ -13,7 +13,8 @@
   "schedule": ["before 6am on Saturday"],
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on Saturday"]
+    "schedule": ["before 6am on Saturday"],
+    "minimumReleaseAge": null
   },
 
   "labels": ["dependencies"],
