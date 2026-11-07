@@ -139,6 +139,12 @@ docstring-code-line-length = "dynamic"
 [tool.pdm]
 distribution = false
 
+# Renovate cannot apply minimumReleaseAge to lockFileMaintenance or transitive
+# deps, so the cooldown lives in the resolver. Keep in sync with renovate.json.
+# A security fix younger than this needs an entry in exclude-newer-override.
+[tool.pdm.resolution]
+exclude-newer = "3d"
+
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py", "*_test.py"]
