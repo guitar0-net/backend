@@ -45,6 +45,10 @@ WORKDIR /app
 # source package along (mount, bsdutils, libblkid1, libmount1, libsmartcols1,
 # libuuid1, liblastlog2-2, login), so naming util-linux alone is enough.
 #
+# apt is upgraded the same way: the base image ships 3.0.3, vulnerable to
+# CVE-2026-109518 (RCE via hard link reuse on download retries); 3.0.4 from
+# trixie-security drags libapt-pkg7.0 along.
+#
 # This is a stopgap, not a permanent hand-managed pin: the build uses
 # `pull: true`, so once the python image is rebuilt against current
 # trixie-security the line becomes a no-op and can be dropped.
@@ -59,7 +63,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libharfbuzz-subset0 \
     shared-mime-info \
     fonts-liberation \
-    && apt-get install -y --no-install-recommends --only-upgrade util-linux \
+    && apt-get install -y --no-install-recommends --only-upgrade util-linux apt \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
