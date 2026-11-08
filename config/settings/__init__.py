@@ -121,6 +121,7 @@ SPECTACULAR_SETTINGS = {
     "ENUM_GENERATE_CHOICE_DESCRIPTION": True,
     "ENUM_NAME_OVERRIDES": {
         "VerifyErrorCode": "apps.donations.constants.VerifyErrorCode",
+        "PrintSizeEnum": "apps.songs.constants.SizeChoice",
     },
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",

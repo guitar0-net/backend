@@ -8,6 +8,9 @@ import logging
 import uuid as uuid_module
 
 from django.http import Http404, HttpResponse
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.throttling import ScopedRateThrottle
@@ -30,6 +33,22 @@ class SongPrintView(APIView):
     throttle_classes = (ScopedRateThrottle,)
     throttle_scope = SONG_PRINT_THROTTLE_SCOPE
 
+    @extend_schema(
+        request=SongPrintSettingsSerializer,
+        responses={
+            (status.HTTP_200_OK, "application/pdf"): OpenApiResponse(
+                response=OpenApiTypes.BINARY,
+                description="The song rendered as a PDF document.",
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description="Invalid print settings."
+            ),
+            status.HTTP_404_NOT_FOUND: OpenApiResponse(description="No such song."),
+            status.HTTP_429_TOO_MANY_REQUESTS: OpenApiResponse(
+                description="Print rate limit exceeded."
+            ),
+        },
+    )
     def post(self, request: Request, uuid: uuid_module.UUID) -> HttpResponse:  # noqa: PLR6301
         """Accept print settings and return the song as a PDF document."""
         song = get_song_by_uuid(uuid)

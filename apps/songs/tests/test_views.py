@@ -195,3 +195,25 @@ def test_song_print_counts_a_spoofed_forwarded_for_against_the_same_caller(
     )
 
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+def test_schema_documents_song_print_success_response_as_pdf(
+    api_client: APIClient,
+) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+    paths = response.json()["paths"]
+    print_path = next(path for path in paths if path.endswith("/print/"))
+
+    assert paths[print_path]["post"]["responses"]["200"]["content"] == {
+        "application/pdf": {"schema": {"type": "string", "format": "binary"}}
+    }
+
+
+def test_schema_documents_song_print_request_body(api_client: APIClient) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+    paths = response.json()["paths"]
+    print_path = next(path for path in paths if path.endswith("/print/"))
+
+    assert paths[print_path]["post"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ] == {"$ref": "#/components/schemas/SongPrintSettingsRequest"}
