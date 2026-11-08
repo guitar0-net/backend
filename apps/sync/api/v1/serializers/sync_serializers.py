@@ -15,11 +15,31 @@ from apps.schemes.models import ImageScheme
 
 
 class LessonFlatSerializer(serializers.ModelSerializer[Lesson]):
-    """Lesson fields only — songs are in the top-level songs array."""
+    """Lesson fields only — songs are in the top-level songs array.
+
+    Recommended lessons are referenced by UUID, limited to published ones. A
+    referenced lesson unpublished later does not bump this lesson's
+    `updated_at`, so the client resolves the UUIDs against `lesson_uuids`.
+    """
+
+    addition_lesson_uuids = serializers.SlugRelatedField[Lesson](
+        source="addition_lessons",
+        slug_field="uuid",
+        many=True,
+        read_only=True,
+    )
 
     class Meta:
         model = Lesson
-        fields = ("uuid", "updated_at", "title", "description", "video_url", "duration")
+        fields = (
+            "uuid",
+            "updated_at",
+            "title",
+            "description",
+            "video_url",
+            "duration",
+            "addition_lesson_uuids",
+        )
 
 
 class SongFlatSerializer(serializers.Serializer[Any]):

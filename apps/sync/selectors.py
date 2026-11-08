@@ -7,7 +7,7 @@
 import uuid
 from datetime import datetime
 
-from django.db.models import Max, QuerySet
+from django.db.models import Max, Prefetch, QuerySet
 
 from apps.courses.models import Course, CourseLesson
 from apps.lessons.models import Lesson
@@ -26,6 +26,10 @@ def get_lessons_for_sync(since: datetime | None = None) -> QuerySet[Lesson]:
         .prefetch_related(
             "songs__chords",
             "songs__schemes",
+            Prefetch(
+                "addition_lessons",
+                queryset=Lesson.objects.filter(is_published=True).only("uuid"),
+            ),
         )
     )
     if since is not None:

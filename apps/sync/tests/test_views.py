@@ -7,6 +7,8 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -215,6 +217,56 @@ def test_sync_lessons_songs_from_unpublished_lesson_excluded(
     response = api_client.get(reverse("sync-lessons"))
 
     assert response.data["songs"] == []
+
+
+# =============================================================================
+# Lessons — recommended (addition) lessons by UUID
+# =============================================================================
+
+
+@pytest.mark.django_db
+def test_sync_lessons_lesson_lists_published_addition_lesson_uuids(
+    api_client: APIClient,
+) -> None:
+    addition = LessonFactory.create(is_published=True, title="Кино — Апрель")
+    lesson = LessonFactory.create(is_published=True, addition_lessons=[addition])
+
+    response = api_client.get(reverse("sync-lessons"))
+
+    lesson_data = next(
+        x for x in response.json()["lessons"] if x["uuid"] == str(lesson.uuid)
+    )
+    assert lesson_data["addition_lesson_uuids"] == [str(addition.uuid)]
+
+
+@pytest.mark.django_db
+def test_sync_lessons_lesson_omits_unpublished_addition_lesson_uuids(
+    api_client: APIClient,
+) -> None:
+    hidden = LessonFactory.create(is_published=False, title="Сплин — Выхода нет")
+    lesson = LessonFactory.create(is_published=True, addition_lessons=[hidden])
+
+    response = api_client.get(reverse("sync-lessons"))
+
+    lesson_data = next(
+        x for x in response.json()["lessons"] if x["uuid"] == str(lesson.uuid)
+    )
+    assert lesson_data["addition_lesson_uuids"] == []
+
+
+@pytest.mark.django_db
+def test_sync_lessons_query_count_does_not_grow_with_addition_lessons(
+    api_client: APIClient,
+) -> None:
+    LessonFactory.create(is_published=True, addition_lessons=2)
+    with CaptureQueriesContext(connection) as single:
+        api_client.get(reverse("sync-lessons"))
+    LessonFactory.create_batch(4, is_published=True, addition_lessons=3)
+
+    with CaptureQueriesContext(connection) as many:
+        api_client.get(reverse("sync-lessons"))
+
+    assert len(many) == len(single)
 
 
 # =============================================================================
