@@ -7,7 +7,7 @@
 import logging
 
 from django.db.models import QuerySet
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -33,6 +33,9 @@ from apps.donations.services import (
 )
 
 from .serializers.claim_device_request_serializer import ClaimDeviceRequestSerializer
+from .serializers.claim_device_response_serializer import (
+    ClaimDeviceResponseSerializer,
+)
 from .serializers.donation_product_list_serializer import DonationProductListSerializer
 from .serializers.purchase_serializer import PurchaseSerializer
 from .serializers.purchase_verify_request_serializer import (
@@ -135,6 +138,18 @@ class PurchaseVerifyView(APIView):
         return Response(PurchaseSerializer(purchase).data)
 
 
+@extend_schema(
+    request=ClaimDeviceRequestSerializer,
+    responses={
+        status.HTTP_200_OK: ClaimDeviceResponseSerializer,
+        status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+            description="Missing or overlong `device_id`."
+        ),
+        status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+            description="No valid access token."
+        ),
+    },
+)
 class ClaimDeviceDonationsView(APIView):
     """Attach a device's anonymous donations to the authenticated user.
 
@@ -153,4 +168,4 @@ class ClaimDeviceDonationsView(APIView):
         claimed = claim_device_purchases(
             request.user, serializer.validated_data["device_id"]
         )
-        return Response({"claimed": claimed})
+        return Response(ClaimDeviceResponseSerializer({"claimed": claimed}).data)

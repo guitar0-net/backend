@@ -313,3 +313,39 @@ def test_claim_device_donations_attaches_anonymous_purchases_to_the_caller(
 
     anonymous.refresh_from_db()
     assert anonymous.user_id == user.pk
+
+
+@pytest.mark.django_db
+def test_claim_device_donations_returns_the_number_of_claimed_purchases(
+    api_client: APIClient,
+) -> None:
+    user = UserFactory.create()
+    PurchaseFactory.create_batch(3, device_id="телефон-7", user=None)
+    access = str(RefreshToken.for_user(user).access_token)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+    response = api_client.post(
+        reverse("donation-claim"), {"device_id": "телефон-7"}, format="json"
+    )
+
+    assert response.json() == {"claimed": 3}
+
+
+def test_schema_documents_claim_device_success_response(api_client: APIClient) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert response.json()["paths"][reverse("donation-claim")]["post"]["responses"][
+        "200"
+    ]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/ClaimDeviceResponse"
+    }
+
+
+def test_schema_documents_claim_device_request_body(api_client: APIClient) -> None:
+    response = api_client.get(reverse("schema"), {"format": "json"})
+
+    assert response.json()["paths"][reverse("donation-claim")]["post"]["requestBody"][
+        "content"
+    ]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/ClaimDeviceRequestRequest"
+    }
