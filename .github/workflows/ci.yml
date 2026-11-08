@@ -121,6 +121,9 @@ jobs:
       - name: Django — no missing migrations
         run: pdm run python manage.py makemigrations --check --dry-run
 
+      - name: Django — OpenAPI schema without warnings
+        run: pdm run python manage.py spectacular --validate --fail-on-warn --file "$RUNNER_TEMP/schema.yml"
+
       - name: Run unit tests
         run: pdm run pytest --maxfail=1 --cov --cov-branch --cov-report=xml --cov-fail-under=90 -m "not integration"
 
