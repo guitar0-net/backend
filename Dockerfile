@@ -49,6 +49,9 @@ WORKDIR /app
 # CVE-2026-109518 (RCE via hard link reuse on download retries); 3.0.4 from
 # trixie-security drags libapt-pkg7.0 along.
 #
+# zlib1g likewise: the base image ships 1.3.1-1+b1, vulnerable to
+# CVE-2026-76844 and CVE-2026-85091 (both HIGH); fixed in 1.3.1-1+deb13u1.
+#
 # This is a stopgap, not a permanent hand-managed pin: the build uses
 # `pull: true`, so once the python image is rebuilt against current
 # trixie-security the line becomes a no-op and can be dropped.
@@ -63,7 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libharfbuzz-subset0 \
     shared-mime-info \
     fonts-liberation \
-    && apt-get install -y --no-install-recommends --only-upgrade util-linux apt \
+    && apt-get install -y --no-install-recommends --only-upgrade util-linux apt zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
