@@ -17,15 +17,14 @@ def get_song_by_uuid(uuid: uuid_module.UUID) -> Song | None:
     return Song.objects.filter(uuid=uuid).prefetch_related("chords", "schemes").first()
 
 
-def get_songs_by_uuids_for_update(uuids: Iterable[uuid_module.UUID]) -> QuerySet[Song]:
-    """Return the songs with these UUIDs, row-locked, with prefetched chords.
+def get_songs_by_uuids(
+    uuids: Iterable[uuid_module.UUID], *, for_update: bool
+) -> QuerySet[Song]:
+    """Return the songs with these UUIDs, with prefetched chords.
 
-    The lock keeps an admin edit from slipping between reading a song's text
-    and writing a value derived from it; evaluate inside a transaction.
+    With `for_update` the rows are locked, which keeps an admin edit from
+    slipping between reading a song's text and writing a value derived from
+    it; evaluate such a queryset inside a transaction.
     """
-    return (
-        Song.objects
-        .select_for_update()
-        .filter(uuid__in=list(uuids))
-        .prefetch_related("chords")
-    )
+    songs = Song.objects.filter(uuid__in=list(uuids)).prefetch_related("chords")
+    return songs.select_for_update() if for_update else songs

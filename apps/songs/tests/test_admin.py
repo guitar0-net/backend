@@ -74,6 +74,14 @@ def test_song_admin_form_rejects_unclosed_chord_bracket() -> None:
     assert not form.is_valid()
 
 
+def test_song_admin_form_dont_report_missing_text_when_chord_text_is_malformed() -> (
+    None
+):
+    form = SongAdminForm(data=_song_form_data(chord_text="Над [Em голубой рекой"))
+
+    assert "__all__" not in form.errors
+
+
 def test_song_admin_form_rejects_song_without_any_text() -> None:
     form = SongAdminForm(data=_song_form_data())
 

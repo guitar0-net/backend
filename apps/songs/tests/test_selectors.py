@@ -8,7 +8,7 @@ import uuid
 
 import pytest
 
-from apps.songs.selectors import get_song_by_uuid, get_songs_by_uuids_for_update
+from apps.songs.selectors import get_song_by_uuid, get_songs_by_uuids
 from apps.songs.tests.factories import SongFactory
 
 
@@ -40,8 +40,20 @@ def test_get_song_by_uuid_prefetches_schemes() -> None:
 
 
 @pytest.mark.django_db
-def test_get_songs_by_uuids_for_update_returns_only_requested_songs() -> None:
+def test_get_songs_by_uuids_returns_only_requested_songs() -> None:
     wanted = SongFactory.create(title="Кукушка")
     SongFactory.create(title="Спокойная ночь")
 
-    assert list(get_songs_by_uuids_for_update([wanted.uuid, uuid.uuid4()])) == [wanted]
+    assert list(get_songs_by_uuids([wanted.uuid, uuid.uuid4()], for_update=False)) == [
+        wanted
+    ]
+
+
+def test_get_songs_by_uuids_locks_rows_when_asked_for_update() -> None:
+    assert get_songs_by_uuids([uuid.uuid4()], for_update=True).query.select_for_update
+
+
+def test_get_songs_by_uuids_dont_lock_rows_without_for_update() -> None:
+    assert not get_songs_by_uuids(
+        [uuid.uuid4()], for_update=False
+    ).query.select_for_update

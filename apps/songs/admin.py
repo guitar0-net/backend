@@ -43,6 +43,8 @@ class SongAdminForm(_SongModelForm):
     def clean(self) -> dict[str, object] | None:
         """Require the song to have at least one of the two texts."""
         cleaned_data = super().clean()
+        if "chord_text" in self.errors:
+            return cleaned_data
         if cleaned_data is not None and not (
             cleaned_data.get("text") or cleaned_data.get("chord_text")
         ):
