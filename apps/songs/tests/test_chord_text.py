@@ -89,3 +89,16 @@ def test_render_chord_text_html_renders_markdown_around_chords() -> None:
     html = render_chord_text_html("**Am G**  \nВ [Am]небе")
 
     assert "<strong>Am G</strong>" in html
+
+
+def test_render_chord_text_html_leaves_markup_after_chord_out_of_pair() -> None:
+    """Pin a known limitation: a tag right after a chord ends the chord word.
+
+    Markdown has already turned `**нце**` into `<strong>` by the time chords
+    are paired, so the chord gets a blank syllable and the formatted text
+    sits beside it, free to wrap away. No stored song puts markup next to a
+    chord, so this stays unfixed until one does.
+    """
+    html = render_chord_text_html("Сол[C]**нце**")
+
+    assert "&nbsp;</span></span></span><strong>нце</strong>" in html
