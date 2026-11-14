@@ -4,6 +4,9 @@
 
 """Serializers for the songs app."""
 
+from typing import ClassVar
+
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from apps.chords.api.v1.serializers.chord_embedded_serializer import (
@@ -12,9 +15,14 @@ from apps.chords.api.v1.serializers.chord_embedded_serializer import (
 from apps.schemes.api.v1.serializers.image_scheme_serializer import (
     ImageSchemeSerializer,
 )
+from apps.songs.constants import (
+    SONG_CHORD_TEXT_SCHEMA_DESCRIPTION,
+    SONG_TEXT_SCHEMA_DESCRIPTION,
+)
 from apps.songs.models import Song
 
 
+@extend_schema_serializer(deprecate_fields=["text"])
 class SongDetailSerializer(serializers.ModelSerializer[Song]):
     """Song detail serializer."""
 
@@ -23,4 +31,16 @@ class SongDetailSerializer(serializers.ModelSerializer[Song]):
 
     class Meta:
         model = Song
-        fields = ("uuid", "title", "text", "metronome", "schemes", "chords")
+        fields = (
+            "uuid",
+            "title",
+            "text",
+            "chord_text",
+            "metronome",
+            "schemes",
+            "chords",
+        )
+        extra_kwargs: ClassVar[dict[str, dict[str, str]]] = {
+            "text": {"help_text": SONG_TEXT_SCHEMA_DESCRIPTION},
+            "chord_text": {"help_text": SONG_CHORD_TEXT_SCHEMA_DESCRIPTION},
+        }

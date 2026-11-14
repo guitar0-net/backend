@@ -13,6 +13,7 @@ from rest_framework.test import APIClient
 
 from apps.courses.tests.factories import CourseFactory
 from apps.lessons.tests.factories import LessonFactory
+from apps.songs.tests.factories import SongFactory
 
 
 @pytest.fixture
@@ -164,3 +165,13 @@ def test_lesson_detail_course_contains_uuid_and_title_when_valid_course_param(
 
     expected = {"uuid": str(course.uuid), "title": "Джаз для гитаристов"}
     assert response.data["course"] == expected
+
+
+@pytest.mark.django_db
+def test_lesson_detail_returns_chord_text_of_its_songs(api_client: APIClient) -> None:
+    song = SongFactory.create(chord_text="Город в [Dm(4)]дорожной петле")
+    lesson = LessonFactory.create(is_published=True, songs=[song])
+
+    response = api_client.get(reverse("lesson-detail", kwargs={"uuid": lesson.uuid}))
+
+    assert response.data["songs"][0]["chord_text"] == "Город в [Dm(4)]дорожной петле"
