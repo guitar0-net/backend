@@ -184,6 +184,42 @@ def test_sync_lessons_song_has_lesson_uuid(api_client: APIClient) -> None:
 
 
 @pytest.mark.django_db
+def test_sync_lessons_song_has_chord_text(api_client: APIClient) -> None:
+    song = SongFactory.create(chord_text="Мы не [G (2)]знали друг друга")
+    LessonFactory.create(is_published=True, songs=[song])
+
+    response = api_client.get(reverse("sync-lessons"))
+
+    song_data = next(s for s in response.data["songs"] if s["uuid"] == str(song.uuid))
+    assert song_data["chord_text"] == "Мы не [G (2)]знали друг друга"
+
+
+@pytest.mark.django_db
+def test_sync_lessons_song_has_empty_chord_text_when_not_converted(
+    api_client: APIClient,
+) -> None:
+    song = SongFactory.create(title="Белый снег, серый лёд")
+    LessonFactory.create(is_published=True, songs=[song])
+
+    response = api_client.get(reverse("sync-lessons"))
+
+    song_data = next(s for s in response.data["songs"] if s["uuid"] == str(song.uuid))
+    assert isinstance(song_data["chord_text"], str) and not song_data["chord_text"]
+
+
+@pytest.mark.django_db
+def test_sync_lessons_delta_song_has_chord_text(api_client: APIClient) -> None:
+    cutoff = datetime(2026, 4, 12, tzinfo=UTC)
+    song = SongFactory.create(chord_text="[Am]Холодный [G]ветер с дождём")
+    lesson = LessonFactory.create(is_published=True, songs=[song])
+    Lesson.objects.filter(pk=lesson.pk).update(updated_at=cutoff + timedelta(hours=3))
+
+    response = api_client.get(reverse("sync-lessons"), {"since": cutoff.isoformat()})
+
+    assert response.data["songs"][0]["chord_text"] == "[Am]Холодный [G]ветер с дождём"
+
+
+@pytest.mark.django_db
 def test_sync_lessons_song_has_chord_ids(api_client: APIClient) -> None:
     chord = ChordFactory.create()
     song = SongFactory.create(chords=[chord])
