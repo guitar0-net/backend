@@ -53,3 +53,10 @@ def test_song_detail_serializer() -> None:
     assert chord_data["id"] == chords[0].id
     assert chord_data["title"] == chords[0].title
     assert "positions" not in chord_data
+
+
+@pytest.mark.django_db
+def test_song_detail_serializer_returns_chord_text() -> None:
+    song = SongFactory.create(chord_text="Под [Am]небом [E]голубым")
+
+    assert SongDetailSerializer(song).data["chord_text"] == "Под [Am]небом [E]голубым"

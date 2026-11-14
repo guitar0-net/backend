@@ -25,3 +25,20 @@ class ChordOrientationChoice(models.TextChoices):
 
 
 SONG_PRINT_THROTTLE_SCOPE = "song_print"
+
+SONG_TEXT_SCHEMA_DESCRIPTION = (
+    "Deprecated: no longer maintained, use `chord_text`. Markdown with chords on "
+    "separate bold lines aligned by spaces, so they drift from the lyrics when a "
+    "line wraps. Kept for released app versions; may be empty for new songs."
+)
+
+SONG_CHORD_TEXT_SCHEMA_DESCRIPTION = (
+    "Song text in markdown with every chord written inline in square brackets "
+    "right before the syllable it belongs to: `Мы не [G (2)]знали друг друга`. "
+    "A chord after the last word goes at the end of the line after a space. "
+    "Text inside the brackets after the chord name (from a space or `(`) is a "
+    "performance note such as a strum count. Chord-only lines (intros, "
+    "instrumentals) stay bold lines without brackets. Brackets are markdown "
+    "link syntax (`[Am](…)`), so cut the chords out before rendering markdown. "
+    "Empty string when the song is not converted yet: fall back to `text`."
+)
