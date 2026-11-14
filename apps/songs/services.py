@@ -16,7 +16,7 @@ from django.utils import timezone
 from apps.lessons.services import touch_lessons_for_songs
 from apps.songs.chord_text import find_chord_text_errors, find_unknown_chords
 from apps.songs.models import Song
-from apps.songs.selectors import get_songs_by_uuids_for_update
+from apps.songs.selectors import get_songs_by_uuids
 
 
 @dataclass(frozen=True)
@@ -93,12 +93,14 @@ def import_chord_texts(
 
     The bulk update bypasses `save_song`, so lessons are touched here, once
     for all updated songs, and `updated_at` is set by hand because
-    `bulk_update` skips `auto_now`.
+    `bulk_update` skips `auto_now`. A dry run reads without locking rows.
     """
     report = ChordTextImportReport()
     songs = {
         song.uuid: song
-        for song in get_songs_by_uuids_for_update(item.song_uuid for item in imports)
+        for song in get_songs_by_uuids(
+            (item.song_uuid for item in imports), for_update=not dry_run
+        )
     }
     now = timezone.now()
     changed: list[Song] = []
