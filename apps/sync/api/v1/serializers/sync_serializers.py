@@ -6,12 +6,17 @@
 
 from typing import Any
 
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from apps.chords.models import Chord
 from apps.courses.models import Course, CourseLesson
 from apps.lessons.models import Lesson
 from apps.schemes.models import ImageScheme
+from apps.songs.constants import (
+    SONG_CHORD_TEXT_SCHEMA_DESCRIPTION,
+    SONG_TEXT_SCHEMA_DESCRIPTION,
+)
 
 
 class LessonFlatSerializer(serializers.ModelSerializer[Lesson]):
@@ -42,13 +47,19 @@ class LessonFlatSerializer(serializers.ModelSerializer[Lesson]):
         )
 
 
+@extend_schema_serializer(deprecate_fields=["text"])
 class SongFlatSerializer(serializers.Serializer[Any]):
     """Song with chord_ids/scheme_ids instead of nested objects."""
 
     uuid = serializers.UUIDField()
     lesson_uuid = serializers.UUIDField()
     title = serializers.CharField()
-    text = serializers.CharField()
+    text = serializers.CharField(
+        allow_blank=True, help_text=SONG_TEXT_SCHEMA_DESCRIPTION
+    )
+    chord_text = serializers.CharField(
+        allow_blank=True, help_text=SONG_CHORD_TEXT_SCHEMA_DESCRIPTION
+    )
     metronome = serializers.IntegerField()
     chord_ids = serializers.ListField(child=serializers.IntegerField())
     scheme_ids = serializers.ListField(child=serializers.IntegerField())

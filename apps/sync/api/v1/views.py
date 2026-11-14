@@ -126,6 +126,7 @@ class LessonsSyncView(APIView):
                     "lesson_uuid": lesson.uuid,
                     "title": song.title,
                     "text": song.text,
+                    "chord_text": song.chord_text,
                     "metronome": song.metronome,
                     "chord_ids": [c.pk for c in song_chords],
                     "scheme_ids": [s.pk for s in song_schemes],
