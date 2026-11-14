@@ -9,11 +9,13 @@ from datetime import UTC, datetime
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.forms.models import modelform_factory
-from django.test import RequestFactory
+from django.test import Client, RequestFactory
+from django.urls import reverse
 
+from apps.chords.tests.factories import ChordFactory
 from apps.lessons.models import Lesson
 from apps.lessons.tests.factories import LessonFactory
-from apps.songs.admin import SongAdmin
+from apps.songs.admin import SongAdmin, SongAdminForm
 from apps.songs.models import Song
 from apps.songs.tests.factories import SongFactory
 
@@ -58,3 +60,59 @@ def test_song_admin_delete_queryset_propagates_updated_at_to_related_lessons() -
 
     lesson.refresh_from_db()
     assert lesson.updated_at > stale
+
+
+def _song_form_data(**fields: object) -> dict[str, object]:
+    return {"title": "Город золотой", "metronome": 96, "text": "", "chord_text": ""} | (
+        fields
+    )
+
+
+def test_song_admin_form_rejects_unclosed_chord_bracket() -> None:
+    form = SongAdminForm(data=_song_form_data(chord_text="Под [Am небом голубым"))
+
+    assert not form.is_valid()
+
+
+def test_song_admin_form_rejects_song_without_any_text() -> None:
+    form = SongAdminForm(data=_song_form_data())
+
+    assert not form.is_valid()
+
+
+@pytest.mark.django_db
+def test_song_admin_form_accepts_song_with_only_chord_text() -> None:
+    form = SongAdminForm(data=_song_form_data(chord_text="Под [Am]небом [E]голубым"))
+
+    assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
+def test_song_admin_change_of_chord_text_propagates_updated_at_to_lessons(
+    admin_client: Client,
+) -> None:
+    stale = datetime(2026, 3, 8, tzinfo=UTC)
+    song = SongFactory.create(title="Есть город золотой")
+    lesson = LessonFactory.create(songs=[song])
+    Lesson.objects.filter(pk=lesson.pk).update(updated_at=stale)
+
+    admin_client.post(
+        reverse("admin:songs_song_change", args=[song.pk]),
+        _song_form_data(title=song.title, chord_text="Под [Am]небом голубым"),
+    )
+
+    lesson.refresh_from_db()
+    assert lesson.updated_at > stale
+
+
+@pytest.mark.django_db
+def test_song_admin_warns_about_chords_missing_from_song(admin_client: Client) -> None:
+    chord = ChordFactory.create(title="Am")
+
+    response = admin_client.post(
+        reverse("admin:songs_song_add"),
+        _song_form_data(chord_text="Под [Am]небом [Fm#(8)]голубым", chords=[chord.pk]),
+        follow=True,
+    )
+
+    assert any("Fm#" in str(m) for m in response.context["messages"])
