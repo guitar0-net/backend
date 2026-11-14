@@ -22,7 +22,25 @@ class Song(models.Model):
     schemes = models.ManyToManyField(
         ImageScheme, verbose_name="Ритмические рисунки (изображения)", blank=True
     )
-    text = MarkdownxField("Текст песни", help_text="С аккордами и переносами строк")
+    text = MarkdownxField(
+        "Текст песни (устарело)",
+        blank=True,
+        help_text=(
+            "Устарело, больше не поддерживается: заполняйте «Текст с аккордами». "
+            "Поле читают старые версии приложения и печать PDF."
+        ),
+    )
+    chord_text = MarkdownxField(
+        "Текст с аккордами",
+        blank=True,
+        default="",
+        help_text=(
+            "Аккорд в квадратных скобках прямо перед слогом: "
+            "«Мы не [G (2)]знали друг друга». Аккорд после последнего слова — "
+            "в конце строки через пробел. Строки только из аккордов "
+            "(вступление, проигрыш) остаются жирными, как в старом тексте."
+        ),
+    )
     metronome = models.IntegerField("Метроном", default=0)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)
 
