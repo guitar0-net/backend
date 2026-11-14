@@ -55,7 +55,7 @@ def _song_with_drawn_chords(count: int) -> Song:
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_render_song_pdf_returns_bytes() -> None:
-    song = SongFactory.create(text="Lyrics line одна")
+    song = SongFactory.create(chord_text="Lyrics [Am]line одна")
     result = render_song_pdf(song, _default_settings())
     assert isinstance(result, bytes)
 
@@ -63,7 +63,7 @@ def test_render_song_pdf_returns_bytes() -> None:
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_render_song_pdf_output_is_valid_pdf() -> None:
-    song = SongFactory.create(text="Текст с аккордами [Am] тест")
+    song = SongFactory.create(chord_text="Текст с аккордами [Am (2)]тест [G]")
     result = render_song_pdf(song, _default_settings())
     assert result[:4] == b"%PDF"
 
@@ -95,7 +95,9 @@ def test_render_song_pdf_with_horizontal_orientation_returns_pdf() -> None:
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_render_song_pdf_with_three_columns_returns_pdf() -> None:
-    song = SongFactory.create(text="Куплет первый\n\nКуплет второй\n\nКуплет третий")
+    song = SongFactory.create(
+        chord_text="Куплет [Dm]первый\n\nКуплет вто[C]рой\n\nКуплет третий [E]"
+    )
     result = render_song_pdf(song, _default_settings(columns_count=3))
     assert result[:4] == b"%PDF"
 
@@ -129,3 +131,12 @@ def test_render_song_pdf_grows_with_chord_size() -> None:
     smallest = render_song_pdf(song, _default_settings(chord_size=1))
     largest = render_song_pdf(song, _default_settings(chord_size=5))
     assert len(largest) > len(smallest)
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_render_song_pdf_prints_chord_text_instead_of_deprecated_text() -> None:
+    song = SongFactory.create(text="Старый [Am] текст", chord_text="")
+    without_chord_text = render_song_pdf(song, _default_settings())
+    song.chord_text = "Пе[Dm]ремен требуют [C]наши сердца"
+    assert len(render_song_pdf(song, _default_settings())) > len(without_chord_text)

@@ -7,9 +7,9 @@
 from typing import Literal, TypedDict
 
 from django.template.loader import render_to_string
-from markdownx.utils import markdownify  # type: ignore[import-untyped]
 from weasyprint import HTML  # type: ignore[import-untyped]
 
+from apps.songs.chord_text import render_chord_text_html
 from apps.songs.models import Song
 
 type Size = Literal[1, 2, 3, 4, 5]
@@ -96,8 +96,8 @@ def render_song_pdf(song: Song, settings: PrintSettings) -> bytes:
         )
 
     text_html = ""
-    if settings["show_text"] and song.text:
-        text_html = markdownify(song.text)
+    if settings["show_text"] and song.chord_text:
+        text_html = render_chord_text_html(song.chord_text)
 
     context = {
         "song_title": song.title,
