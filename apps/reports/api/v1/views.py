@@ -20,6 +20,7 @@ from apps.reports.constants import (
 )
 from apps.reports.services import ReportSubmission, submit_report
 from apps.reports.throttling import ReportDeviceRateThrottle
+from apps.shared.authentication import OptionalJWTAuthentication
 
 from .serializers.report_create_request_serializer import (
     ReportCreateRequestSerializer,
@@ -45,10 +46,13 @@ class ReportCreateView(APIView):
     """Submit a report about a content item, an app bug, or a feature idea.
 
     Unauthenticated, because signing in is optional; a signed-in caller is
-    recorded as the report's user. Idempotent on the client-generated `id`,
-    so an offline queue can safely resend.
+    recorded as the report's user. A report replayed from the offline queue
+    may carry a token that has since expired, so an unusable token makes the
+    report anonymous instead of failing it with 401. Idempotent on the
+    client-generated `id`, so an offline queue can safely resend.
     """
 
+    authentication_classes = (OptionalJWTAuthentication,)
     permission_classes = (AllowAny,)
     throttle_classes = (ReportDeviceRateThrottle, ScopedRateThrottle)
     throttle_scope = REPORT_CREATE_THROTTLE_SCOPE
