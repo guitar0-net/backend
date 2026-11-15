@@ -14,16 +14,9 @@ from django.utils import timezone
 
 from apps.accounts.models.user import User
 from apps.reports.constants import ReportTargetType
-from apps.reports.metrics import reports_submitted_total
+from apps.reports.metrics import reports_submitted_total, reports_target_missing_total
 from apps.reports.models import Report
 from apps.reports.selectors import get_report_by_id, get_report_target_snapshot
-
-
-class UnknownReportTargetError(Exception):
-    """Raised when the reported content item does not exist.
-
-    Retrying will not help, so the client should drop the queued report.
-    """
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -50,29 +43,25 @@ def submit_report(
 ) -> tuple[Report, bool]:
     """Record a report, or return the one already recorded under its id.
 
-    A known id short-circuits before the target lookup, so a queued report
-    whose target was deleted meanwhile is still acknowledged on retry.
+    A known id short-circuits before the target lookup, so a retry keeps
+    the snapshot taken when the report was first accepted.
 
     Returns:
         tuple[Report, bool]: The report, and whether it was created now.
-
-    Raises:
-        UnknownReportTargetError: The content item being reported is unknown.
     """
     existing = get_report_by_id(submission.id)
     if existing is not None:
         return existing, False
 
-    title, target_updated_at = "", None
+    title, target_updated_at, target_missing = "", None, False
     if submission.target_type != ReportTargetType.APP:
         snapshot = get_report_target_snapshot(
             submission.target_type, submission.target_id
         )
         if snapshot is None:
-            raise UnknownReportTargetError(
-                f"No {submission.target_type} with id {submission.target_id!r}"
-            )
-        title, target_updated_at = snapshot.title, snapshot.updated_at
+            target_missing = True
+        else:
+            title, target_updated_at = snapshot.title, snapshot.updated_at
 
     try:
         with transaction.atomic():
@@ -82,6 +71,7 @@ def submit_report(
                 target_id=submission.target_id,
                 target_title=title,
                 target_updated_at=target_updated_at,
+                target_missing=target_missing,
                 content_version=submission.content_version,
                 reason=submission.reason,
                 message=submission.message,
@@ -103,6 +93,8 @@ def submit_report(
     reports_submitted_total.labels(
         target_type=submission.target_type, reason=submission.reason
     ).inc()
+    if target_missing:
+        reports_target_missing_total.labels(target_type=submission.target_type).inc()
     return report, True
 
 

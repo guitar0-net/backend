@@ -32,6 +32,10 @@ class Report(models.Model):
     not rows at all (`app`). `target_title` and `target_updated_at` are
     captured at submission time, so staff can tell whether the content has
     been edited since — or deleted — without the report losing its meaning.
+    A report whose target is not found is still kept, flagged
+    `target_missing`: the item may have been deleted while the report sat
+    in the offline queue, or the client may be sending a wrong id, and
+    rejecting it would make the client drop the user's message unseen.
     `content_version` is the sync version the client had applied, which may
     be older than `target_updated_at` when the report sat in the offline
     queue or background sync had failed: the user saw an outdated copy.
@@ -56,6 +60,11 @@ class Report(models.Model):
     )
     target_updated_at = models.DateTimeField(
         "Объект обновлён (на момент отчёта)", null=True, blank=True
+    )
+    target_missing = models.BooleanField(
+        "Объект не найден",
+        default=False,
+        help_text="Объекта с таким ID не было на момент отчёта",
     )
     content_version = models.DateTimeField(
         "Версия контента у клиента",

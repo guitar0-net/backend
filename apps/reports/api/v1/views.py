@@ -4,8 +4,6 @@
 
 """Views for the reports API v1."""
 
-import logging
-
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -20,11 +18,7 @@ from apps.reports.constants import (
     REASONS_REQUIRING_MESSAGE,
     REPORT_CREATE_THROTTLE_SCOPE,
 )
-from apps.reports.services import (
-    ReportSubmission,
-    UnknownReportTargetError,
-    submit_report,
-)
+from apps.reports.services import ReportSubmission, submit_report
 from apps.reports.throttling import ReportDeviceRateThrottle
 
 from .serializers.report_create_request_serializer import (
@@ -36,8 +30,6 @@ from .serializers.report_reasons_serializer import (
 )
 from .serializers.report_serializer import ReportSerializer
 
-logger = logging.getLogger("reports")
-
 
 @extend_schema(
     request=ReportCreateRequestSerializer,
@@ -46,9 +38,7 @@ logger = logging.getLogger("reports")
         status.HTTP_200_OK: OpenApiResponse(
             ReportSerializer, description="A report with this id already exists."
         ),
-        status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-            description="Invalid payload, or the reported item does not exist."
-        ),
+        status.HTTP_400_BAD_REQUEST: OpenApiResponse(description="Invalid payload."),
     },
 )
 class ReportCreateView(APIView):
@@ -73,15 +63,9 @@ class ReportCreateView(APIView):
             assert isinstance(request.user, User)
             user = request.user
 
-        try:
-            report, created = submit_report(
-                ReportSubmission(**serializer.validated_data), user=user
-            )
-        except UnknownReportTargetError as exc:
-            logger.info("Rejected report: %s", exc)
-            return Response(
-                {"target_id": ["No such item."]}, status=status.HTTP_400_BAD_REQUEST
-            )
+        report, created = submit_report(
+            ReportSubmission(**serializer.validated_data), user=user
+        )
 
         return Response(
             ReportSerializer(report).data,
