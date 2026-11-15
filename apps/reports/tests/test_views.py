@@ -4,6 +4,7 @@
 
 """Tests for reports API views."""
 
+import string
 import uuid
 
 import pytest
@@ -14,6 +15,7 @@ from rest_framework.test import APIClient
 from rest_framework.throttling import ScopedRateThrottle
 
 from apps.accounts.tests.factories.user import UserFactory
+from apps.chords.tests.factories import ChordFactory
 from apps.reports.constants import (
     REPORT_CREATE_THROTTLE_SCOPE,
     ClientPlatform,
@@ -117,6 +119,75 @@ def test_report_create_rejects_a_song_that_does_not_exist(
         "target_type": ReportTargetType.SONG,
         "target_id": str(uuid.uuid4()),
         "reason": ReportReason.WRONG_CHORDS,
+    }
+
+    response = api_client.post(reverse("report-create"), body, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_report_create_stores_an_uppercase_song_uuid_in_canonical_form(
+    api_client: APIClient, payload: dict[str, str], fake: Faker
+) -> None:
+    song = SongFactory.create(title=fake.sentence())
+    body = {
+        **payload,
+        "target_type": ReportTargetType.SONG,
+        "target_id": str(song.uuid).upper(),
+        "reason": ReportReason.WRONG_LYRICS,
+    }
+
+    api_client.post(reverse("report-create"), body, format="json")
+
+    report = get_report_by_id(uuid.UUID(payload["id"]))
+    assert report is not None and report.target_id == str(song.uuid)
+
+
+@pytest.mark.django_db
+def test_report_create_stores_a_chord_id_in_ascii_digits(
+    api_client: APIClient, payload: dict[str, str], fake: Faker
+) -> None:
+    chord = ChordFactory.create(title=fake.lexify("??"))
+    arabic_indic = str.maketrans(string.digits, "٠١٢٣٤٥٦٧٨٩")
+    body = {
+        **payload,
+        "target_type": ReportTargetType.CHORD,
+        "target_id": f"0{chord.pk}".translate(arabic_indic),
+        "reason": ReportReason.WRONG_FINGERING,
+    }
+
+    api_client.post(reverse("report-create"), body, format="json")
+
+    report = get_report_by_id(uuid.UUID(payload["id"]))
+    assert report is not None and report.target_id == str(chord.pk)
+
+
+@pytest.mark.django_db
+def test_report_create_rejects_a_song_id_that_is_not_a_uuid(
+    api_client: APIClient, payload: dict[str, str], fake: Faker
+) -> None:
+    body = {
+        **payload,
+        "target_type": ReportTargetType.SONG,
+        "target_id": fake.word(),
+        "reason": ReportReason.WRONG_CHORDS,
+    }
+
+    response = api_client.post(reverse("report-create"), body, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_report_create_rejects_a_chord_id_that_is_not_an_integer(
+    api_client: APIClient, payload: dict[str, str]
+) -> None:
+    body = {
+        **payload,
+        "target_type": ReportTargetType.CHORD,
+        "target_id": str(uuid.uuid4()),
+        "reason": ReportReason.WRONG_FINGERING,
     }
 
     response = api_client.post(reverse("report-create"), body, format="json")
