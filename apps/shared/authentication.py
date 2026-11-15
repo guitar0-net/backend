@@ -4,6 +4,7 @@
 
 """Custom authentication classes."""
 
+from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import AuthUser, JWTAuthentication
@@ -25,3 +26,16 @@ class OptionalJWTAuthentication(JWTAuthentication):
             return super().authenticate(request)
         except AuthenticationFailed:
             return None
+
+
+class OptionalJWTScheme(SimpleJWTScheme):
+    """Document `OptionalJWTAuthentication` as a bearer JWT scheme.
+
+    drf-spectacular's simplejwt extension matches `JWTAuthentication` only,
+    not its subclasses, and refuses two classes under one scheme name. The
+    extension registers itself on definition, so it lives next to the class
+    it describes to be loaded whenever that is.
+    """
+
+    target_class = "apps.shared.authentication.OptionalJWTAuthentication"
+    name = "optionalJwtAuth"
