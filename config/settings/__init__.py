@@ -105,6 +105,7 @@ REST_FRAMEWORK = {
         # this needs to be much stricter than the general anon rate.
         "donation_verify": "5/minute",
         "song_print": "3/minute",
+        "report_create": "10/hour",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "config.pagination.GuitarPagination",
@@ -123,6 +124,10 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "VerifyErrorCode": "apps.donations.constants.VerifyErrorCode",
         "PrintSizeEnum": "apps.songs.constants.SizeChoice",
+        "PlatformEnum": "apps.donations.constants.Platform",
+        "ReportPlatformEnum": "apps.reports.constants.ClientPlatform",
+        "ReportReasonEnum": "apps.reports.constants.ReportReason",
+        "ReportTargetTypeEnum": "apps.reports.constants.ReportTargetType",
     },
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
