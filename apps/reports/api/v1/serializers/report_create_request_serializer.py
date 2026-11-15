@@ -10,7 +10,6 @@ from typing import Any
 from rest_framework import serializers
 
 from apps.reports.constants import (
-    REASONS_BY_TARGET_TYPE,
     REASONS_REQUIRING_MESSAGE,
     ClientPlatform,
     ReportReason,
@@ -26,7 +25,10 @@ class ReportCreateRequestSerializer(serializers.Serializer[None]):
     It is stored in canonical form (lowercase hyphenated UUID, or a plain
     integer), since `uuid.UUID` and `int` accept many spellings of one id
     and the stored string is what staff search and group reports by.
-    `reason` must be one of the reasons offered for `target_type`.
+    `reason` may be any known code, not only those offered for `target_type`.
+    It is a plain string in the schema rather than an enum, so a client
+    generated before a reason was added can still send a code it learned
+    from `GET reports/reasons/`.
     """
 
     id = serializers.UUIDField()
@@ -34,7 +36,9 @@ class ReportCreateRequestSerializer(serializers.Serializer[None]):
     target_id = serializers.CharField(
         max_length=64, required=False, allow_blank=True, default=""
     )
-    reason = serializers.ChoiceField(choices=ReportReason.choices)
+    reason = serializers.CharField(
+        max_length=30, help_text="A reason code from GET reports/reasons/."
+    )
     message = serializers.CharField(
         max_length=2000, required=False, allow_blank=True, default=""
     )
@@ -52,13 +56,15 @@ class ReportCreateRequestSerializer(serializers.Serializer[None]):
         max_length=64, required=False, allow_blank=True, default=""
     )
 
+    def validate_reason(self, value: str) -> str:  # noqa: PLR6301
+        """Reject a reason code the server does not know."""
+        if value not in ReportReason.values:
+            raise serializers.ValidationError(f"Unknown reason {value!r}.")
+        return value
+
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:  # noqa: PLR6301
         """Check the fields that only make sense together."""
         target_type = attrs["target_type"]
-        if attrs["reason"] not in REASONS_BY_TARGET_TYPE[target_type]:
-            raise serializers.ValidationError({
-                "reason": f"Not offered for target_type {target_type}."
-            })
         if target_type == ReportTargetType.APP and attrs["target_id"]:
             raise serializers.ValidationError({
                 "target_id": "Must be empty when target_type is app."

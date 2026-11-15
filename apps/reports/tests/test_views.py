@@ -196,14 +196,25 @@ def test_report_create_rejects_a_chord_id_that_is_not_an_integer(
 
 
 @pytest.mark.django_db
-def test_report_create_rejects_a_reason_not_offered_for_the_target_type(
+def test_report_create_rejects_an_unknown_reason_code(
+    api_client: APIClient, payload: dict[str, str], fake: Faker
+) -> None:
+    body = {**payload, "reason": f"{fake.word()}_ё"}
+
+    response = api_client.post(reverse("report-create"), body, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_report_create_accepts_a_reason_not_offered_for_the_target_type(
     api_client: APIClient, payload: dict[str, str]
 ) -> None:
     body = {**payload, "reason": ReportReason.WRONG_CHORDS}
 
     response = api_client.post(reverse("report-create"), body, format="json")
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db

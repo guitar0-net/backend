@@ -126,7 +126,6 @@ SPECTACULAR_SETTINGS = {
         "PrintSizeEnum": "apps.songs.constants.SizeChoice",
         "PlatformEnum": "apps.donations.constants.Platform",
         "ReportPlatformEnum": "apps.reports.constants.ClientPlatform",
-        "ReportReasonEnum": "apps.reports.constants.ReportReason",
         "ReportTargetTypeEnum": "apps.reports.constants.ReportTargetType",
     },
     "POSTPROCESSING_HOOKS": [
