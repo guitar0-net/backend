@@ -6,7 +6,7 @@
 
 import string
 import uuid
-from datetime import UTC
+from datetime import UTC, timedelta
 
 import pytest
 from django.urls import reverse
@@ -14,6 +14,7 @@ from faker import Faker
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.accounts.tests.factories.user import UserFactory
 from apps.chords.tests.factories import ChordFactory
@@ -92,6 +93,19 @@ def test_report_create_records_the_signed_in_user(
 
     report = get_report_by_id(uuid.UUID(payload["id"]))
     assert report is not None and report.user == user
+
+
+@pytest.mark.django_db
+def test_report_create_accepts_a_report_carrying_an_expired_token(
+    api_client: APIClient, payload: dict[str, str], fake: Faker
+) -> None:
+    token = AccessToken.for_user(UserFactory.create(email=fake.email()))
+    token.set_exp(lifetime=-timedelta(minutes=fake.pyint(1, 1000)))
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+
+    response = api_client.post(reverse("report-create"), payload, format="json")
+
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db
