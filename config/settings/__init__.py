@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "apps.announcements",
     "apps.sync",
     "apps.donations",
+    "apps.reports",
 ]
 
 MIDDLEWARE = [
