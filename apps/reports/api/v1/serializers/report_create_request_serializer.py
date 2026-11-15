@@ -36,6 +36,12 @@ class ReportCreateRequestSerializer(serializers.Serializer[None]):
     target_id = serializers.CharField(
         max_length=64, required=False, allow_blank=True, default=""
     )
+    content_version = serializers.DateTimeField(
+        required=False,
+        allow_null=True,
+        default=None,
+        help_text="`version` from the last sync payload the client applied.",
+    )
     reason = serializers.CharField(
         max_length=30, help_text="A reason code from GET reports/reasons/."
     )

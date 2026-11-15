@@ -6,6 +6,7 @@
 
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
@@ -32,6 +33,7 @@ class ReportSubmission:
     id: uuid.UUID
     target_type: str
     target_id: str
+    content_version: datetime | None
     reason: str
     message: str
     contact_email: str
@@ -80,6 +82,7 @@ def submit_report(
                 target_id=submission.target_id,
                 target_title=title,
                 target_updated_at=target_updated_at,
+                content_version=submission.content_version,
                 reason=submission.reason,
                 message=submission.message,
                 contact_email=submission.contact_email,

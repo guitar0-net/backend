@@ -10,7 +10,7 @@ from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.http import HttpRequest
 
-from apps.reports.constants import ReportStatus
+from apps.reports.constants import CONTENT_VERSIONED_TARGET_TYPES, ReportStatus
 from apps.reports.models import Report
 from apps.reports.services import set_reports_status
 
@@ -28,6 +28,7 @@ class ReportAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
         "created_at",
         "target_type",
         "target_title",
+        "client_content_outdated",
         "reason",
         "status",
         "platform",
@@ -51,6 +52,8 @@ class ReportAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
         "target_id",
         "target_title",
         "target_updated_at",
+        "content_version",
+        "client_content_outdated",
         "reason",
         "message",
         "contact_email",
@@ -69,6 +72,22 @@ class ReportAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
         field for field in fields if field not in {"status", "staff_note"}
     )
     actions = ("mark_in_progress", "mark_resolved", "mark_rejected")
+
+    @admin.display(description="У клиента старая версия", boolean=True)
+    def client_content_outdated(self, report: Report) -> bool | None:  # noqa: PLR6301
+        """Tell whether the item was edited after the client last synced.
+
+        Such a report may already be fixed and can be closed. None means it
+        cannot be told: the client sent no version, or the target type does
+        not move the sync version.
+        """
+        if (
+            report.target_type not in CONTENT_VERSIONED_TARGET_TYPES
+            or report.content_version is None
+            or report.target_updated_at is None
+        ):
+            return None
+        return report.content_version < report.target_updated_at
 
     def has_add_permission(self, request: HttpRequest) -> bool:  # noqa: PLR6301
         """Disallow creating reports by hand; they come from users only."""

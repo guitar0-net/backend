@@ -6,6 +6,7 @@
 
 import string
 import uuid
+from datetime import UTC
 
 import pytest
 from django.urls import reverse
@@ -161,6 +162,33 @@ def test_report_create_stores_a_chord_id_in_ascii_digits(
 
     report = get_report_by_id(uuid.UUID(payload["id"]))
     assert report is not None and report.target_id == str(chord.pk)
+
+
+@pytest.mark.django_db
+def test_report_create_stores_the_content_version_the_client_had(
+    api_client: APIClient, payload: dict[str, str], fake: Faker
+) -> None:
+    version = fake.date_time(tzinfo=UTC)
+
+    api_client.post(
+        reverse("report-create"),
+        {**payload, "content_version": version.isoformat()},
+        format="json",
+    )
+
+    report = get_report_by_id(uuid.UUID(payload["id"]))
+    assert report is not None and report.content_version == version
+
+
+@pytest.mark.django_db
+def test_report_create_accepts_a_client_that_never_synced(
+    api_client: APIClient, payload: dict[str, str]
+) -> None:
+    response = api_client.post(
+        reverse("report-create"), {**payload, "content_version": None}, format="json"
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db
