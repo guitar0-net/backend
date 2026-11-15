@@ -32,6 +32,9 @@ class Report(models.Model):
     not rows at all (`app`). `target_title` and `target_updated_at` are
     captured at submission time, so staff can tell whether the content has
     been edited since — or deleted — without the report losing its meaning.
+    `content_version` is the sync version the client had applied, which may
+    be older than `target_updated_at` when the report sat in the offline
+    queue or background sync had failed: the user saw an outdated copy.
 
     `user` is set when the caller is signed in; `device_id` is always set,
     since sign-in is optional and it is the only stable reporter identity.
@@ -53,6 +56,12 @@ class Report(models.Model):
     )
     target_updated_at = models.DateTimeField(
         "Объект обновлён (на момент отчёта)", null=True, blank=True
+    )
+    content_version = models.DateTimeField(
+        "Версия контента у клиента",
+        null=True,
+        blank=True,
+        help_text="Версия последней синхронизации, которую применил клиент",
     )
     reason = models.CharField("Причина", max_length=30, choices=ReportReason.choices)
     message = models.TextField("Сообщение", blank=True, default="")

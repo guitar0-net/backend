@@ -7,6 +7,7 @@
 import dataclasses
 import uuid
 from collections.abc import Iterator
+from datetime import UTC
 
 import pytest
 from faker import Faker
@@ -62,6 +63,19 @@ def test_submit_report_remembers_the_song_title(
     )
 
     assert report.target_title == song.title
+
+
+@pytest.mark.django_db
+def test_submit_report_stores_the_content_version_the_client_had(
+    app_submission: ReportSubmission, fake: Faker
+) -> None:
+    version = fake.date_time(tzinfo=UTC)
+
+    report, _created = submit_report(
+        dataclasses.replace(app_submission, content_version=version), user=None
+    )
+
+    assert report.content_version == version
 
 
 @pytest.mark.django_db

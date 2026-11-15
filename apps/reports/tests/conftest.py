@@ -43,6 +43,7 @@ def app_submission(fake: Faker) -> ReportSubmission:
         id=uuid.uuid4(),
         target_type=ReportTargetType.APP,
         target_id="",
+        content_version=None,
         reason=ReportReason.BUG,
         message=fake.sentence(),
         contact_email=fake.email(),

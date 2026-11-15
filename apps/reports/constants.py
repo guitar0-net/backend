@@ -102,6 +102,19 @@ which the client drops.
 """
 
 
+CONTENT_VERSIONED_TARGET_TYPES: Final[frozenset[str]] = frozenset({
+    ReportTargetType.SONG,
+    ReportTargetType.LESSON,
+})
+"""Target types whose edits move the sync content version.
+
+Only for these can a report's `content_version` be compared with its
+`target_updated_at`: song edits propagate to `Lesson.updated_at`, which the
+version is derived from. Course edits do not, and chords and schemes have no
+`updated_at` of their own to compare with.
+"""
+
+
 class ReportStatus(models.TextChoices):
     """Staff-side processing state of a report."""
 
