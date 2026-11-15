@@ -112,7 +112,7 @@ def test_report_create_accepts_a_report_about_an_existing_song(
 
 
 @pytest.mark.django_db
-def test_report_create_rejects_a_song_that_does_not_exist(
+def test_report_create_accepts_a_report_about_a_song_that_does_not_exist(
     api_client: APIClient, payload: dict[str, str]
 ) -> None:
     body = {
@@ -124,7 +124,7 @@ def test_report_create_rejects_a_song_that_does_not_exist(
 
     response = api_client.post(reverse("report-create"), body, format="json")
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db

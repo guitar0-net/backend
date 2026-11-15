@@ -35,7 +35,7 @@ class ReportAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
         "app_version",
         "contact_email",
     )
-    list_filter = ("status", "target_type", "reason", "platform")
+    list_filter = ("status", "target_type", "target_missing", "reason", "platform")
     search_fields = (
         "target_id",
         "target_title",
@@ -52,6 +52,7 @@ class ReportAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
         "target_id",
         "target_title",
         "target_updated_at",
+        "target_missing",
         "content_version",
         "client_content_outdated",
         "reason",

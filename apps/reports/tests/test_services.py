@@ -19,7 +19,6 @@ from apps.reports.models import Report
 from apps.reports.selectors import get_report_by_id
 from apps.reports.services import (
     ReportSubmission,
-    UnknownReportTargetError,
     set_reports_status,
     submit_report,
 )
@@ -114,11 +113,40 @@ def test_submit_report_keeps_the_original_message_on_resubmission(
 
 
 @pytest.mark.django_db
-def test_submit_report_rejects_a_song_that_does_not_exist(
+def test_submit_report_keeps_a_report_about_a_song_that_does_not_exist(
     app_submission: ReportSubmission,
 ) -> None:
-    with pytest.raises(UnknownReportTargetError):
-        submit_report(_song_submission(app_submission, uuid.uuid4()), user=None)
+    report, _created = submit_report(
+        _song_submission(app_submission, uuid.uuid4()), user=None
+    )
+
+    assert report.target_missing is True
+
+
+@pytest.mark.django_db
+def test_submit_report_does_not_flag_an_existing_song_as_missing(
+    app_submission: ReportSubmission, fake: Faker
+) -> None:
+    song = SongFactory.create(title=fake.sentence())
+
+    report, _created = submit_report(
+        _song_submission(app_submission, song.uuid), user=None
+    )
+
+    assert report.target_missing is False
+
+
+@pytest.mark.django_db
+def test_submit_report_counts_reports_about_missing_items_for_alerting(
+    app_submission: ReportSubmission,
+) -> None:
+    labels: dict[str, str] = {"target_type": ReportTargetType.SONG}
+    metric = "guitar0_backend_reports_target_missing_total"
+    before = get_registry().get_sample_value(metric, labels) or 0.0
+
+    submit_report(_song_submission(app_submission, uuid.uuid4()), user=None)
+
+    assert get_registry().get_sample_value(metric, labels) == before + 1
 
 
 @pytest.mark.django_db

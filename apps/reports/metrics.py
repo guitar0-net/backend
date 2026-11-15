@@ -15,3 +15,14 @@ reports_submitted_total = Counter(
     labelnames=["target_type", "reason"],
     registry=get_registry(),
 )
+
+reports_target_missing_total = Counter(
+    name=f"{METRIC_PREFIX}reports_target_missing_total",
+    documentation=(
+        "Accepted reports whose content item was not found. A steady rise "
+        "points at a client sending wrong target ids rather than at deleted "
+        "content."
+    ),
+    labelnames=["target_type"],
+    registry=get_registry(),
+)
