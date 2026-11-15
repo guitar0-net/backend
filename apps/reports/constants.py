@@ -26,7 +26,13 @@ class ReportTargetType(models.TextChoices):
 
 
 class ReportReason(models.TextChoices):
-    """Why the user is reporting; which ones apply depends on the target type."""
+    """Why the user is reporting.
+
+    Codes are never removed: the server accepts any of them for any target
+    type, so a report queued offline against an older reason list still goes
+    through, and stored reports keep a valid reason. To retire a reason, drop
+    it from REASONS_BY_TARGET_TYPE instead.
+    """
 
     WRONG_CHORDS = "wrong_chords", "Неверные аккорды"
     WRONG_LYRICS = "wrong_lyrics", "Ошибка в тексте песни"
@@ -78,13 +84,22 @@ REASONS_BY_TARGET_TYPE: Final[Mapping[str, tuple[ReportReason, ...]]] = {
         ReportReason.OTHER,
     ),
 }
-"""Reasons a client may offer for each target type, in display order."""
+"""Reasons a client offers for each target type, in display order.
+
+Controls what the client shows, not what the server accepts, so reasons
+can be reordered or hidden without breaking reports already queued.
+"""
 
 REASONS_REQUIRING_MESSAGE: Final[frozenset[str]] = frozenset({
     ReportReason.OTHER,
     ReportReason.FEATURE_REQUEST,
 })
-"""Reasons that say nothing on their own, so the user must describe the issue."""
+"""Reasons that say nothing on their own, so the user must describe the issue.
+
+The server rejects these without a message, so this set may only shrink:
+adding a reason would turn reports queued without a message into 400s,
+which the client drops.
+"""
 
 
 class ReportStatus(models.TextChoices):
