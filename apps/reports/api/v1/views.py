@@ -25,6 +25,7 @@ from apps.reports.services import (
     UnknownReportTargetError,
     submit_report,
 )
+from apps.reports.throttling import ReportDeviceRateThrottle
 
 from .serializers.report_create_request_serializer import (
     ReportCreateRequestSerializer,
@@ -59,7 +60,7 @@ class ReportCreateView(APIView):
     """
 
     permission_classes = (AllowAny,)
-    throttle_classes = (ScopedRateThrottle,)
+    throttle_classes = (ReportDeviceRateThrottle, ScopedRateThrottle)
     throttle_scope = REPORT_CREATE_THROTTLE_SCOPE
 
     def post(self, request: Request) -> Response:  # noqa: PLR6301

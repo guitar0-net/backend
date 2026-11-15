@@ -41,8 +41,8 @@ def payload(fake: Faker) -> dict[str, str]:
 
 
 @pytest.fixture
-def create_rate_limit() -> int:
-    """Return how many reports the configured scope allows per period."""
+def ip_rate_limit() -> int:
+    """Return how many reports one IP address may send per period."""
     throttle = ScopedRateThrottle()
     throttle.scope = REPORT_CREATE_THROTTLE_SCOPE
     allowed, _duration = throttle.parse_rate(throttle.get_rate())
@@ -266,10 +266,10 @@ def test_report_create_rejects_a_malformed_contact_email(
 
 
 @pytest.mark.django_db
-def test_report_create_throttles_a_flood_from_one_client(
-    api_client: APIClient, payload: dict[str, str], create_rate_limit: int
+def test_report_create_throttles_a_flood_from_one_device(
+    api_client: APIClient, payload: dict[str, str], device_rate_limit: int
 ) -> None:
-    for _ in range(create_rate_limit):
+    for _ in range(device_rate_limit):
         api_client.post(
             reverse("report-create"),
             {**payload, "id": str(uuid.uuid4())},
@@ -277,6 +277,26 @@ def test_report_create_throttles_a_flood_from_one_client(
         )
 
     response = api_client.post(reverse("report-create"), payload, format="json")
+
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+@pytest.mark.django_db
+def test_report_create_throttles_a_flood_from_one_ip_across_devices(
+    api_client: APIClient, payload: dict[str, str], ip_rate_limit: int
+) -> None:
+    for _ in range(ip_rate_limit):
+        api_client.post(
+            reverse("report-create"),
+            {**payload, "id": str(uuid.uuid4()), "device_id": str(uuid.uuid4())},
+            format="json",
+        )
+
+    response = api_client.post(
+        reverse("report-create"),
+        {**payload, "device_id": str(uuid.uuid4())},
+        format="json",
+    )
 
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 

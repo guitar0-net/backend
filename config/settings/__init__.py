@@ -105,7 +105,8 @@ REST_FRAMEWORK = {
         # this needs to be much stricter than the general anon rate.
         "donation_verify": "5/minute",
         "song_print": "3/minute",
-        "report_create": "10/hour",
+        "report_create": "100/hour",
+        "report_create_device": "10/hour",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "config.pagination.GuitarPagination",
