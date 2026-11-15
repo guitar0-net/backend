@@ -120,5 +120,7 @@ class ClientPlatform(models.TextChoices):
 
 
 # Reports are written by anonymous callers, so the shared anon rate (per
-# minute) would let one device flood the staff inbox.
+# minute) would let one device flood the staff inbox. The per-IP scope stays
+# loose because carriers put many subscribers behind one address.
 REPORT_CREATE_THROTTLE_SCOPE = "report_create"
+REPORT_DEVICE_THROTTLE_SCOPE = "report_create_device"

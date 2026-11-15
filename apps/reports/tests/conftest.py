@@ -14,6 +14,7 @@ from rest_framework.test import APIClient
 
 from apps.reports.constants import ClientPlatform, ReportReason, ReportTargetType
 from apps.reports.services import ReportSubmission
+from apps.reports.throttling import ReportDeviceRateThrottle
 
 
 @pytest.fixture
@@ -52,3 +53,13 @@ def app_submission(fake: Faker) -> ReportSubmission:
         locale=fake.locale(),
         screen=fake.word(),
     )
+
+
+@pytest.fixture
+def device_rate_limit() -> int:
+    """Return how many reports one device may send per period."""
+    throttle = ReportDeviceRateThrottle()
+    allowed, _duration = throttle.parse_rate(throttle.get_rate())
+    if allowed is None:
+        pytest.fail("the report device scope has no configured rate")
+    return allowed
